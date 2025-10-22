@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const { initializeFirebase } = require('./config/firebase');
 const firebaseRoutes = require('./routes/firebaseRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,11 +20,14 @@ initializeFirebase();
 // Routes
 app.get('/', (req, res) => {
   res.json({
-    message: 'FMB Merchant Portal API',
+    message: 'FMB Portal API',
     version: '1.0.0',
     status: 'running'
   });
 });
+
+// Auth routes
+app.use('/api/auth', authRoutes);
 
 // Firebase routes
 app.use('/api/firebase', firebaseRoutes);
