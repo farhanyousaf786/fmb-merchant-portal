@@ -1,0 +1,84 @@
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  background: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-header h1 {
+  color: #667eea;
+  font-size: 24px;
+}
+
+.header-right {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.header-right span {
+  color: #666;
+}
+
+.header-right button {
+  padding: 8px 20px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.dashboard-content {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: 200px;
+  background: white;
+  padding: 20px 0;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.sidebar button {
+  width: 100%;
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
+}
+
+.sidebar button:hover {
+  background: #f5f5f5;
+}
+
+.sidebar button.active {
+  background: #667eea;
+  color: white;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
+}
+
+.placeholder {
+  background: white;
+  padding: 40px;
+  border-radius: 10px;
+  text-align: center;
+  color: #999;
+  font-size: 18px;
+}
