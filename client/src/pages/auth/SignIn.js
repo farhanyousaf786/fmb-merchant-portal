@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SignIn.css';
 
-function SignIn() {
+function SignIn({ setUser }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -27,11 +27,15 @@ function SignIn() {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token in localStorage
+        // Store token and user data in localStorage
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.setItem('userData', JSON.stringify(data.user));
         
-        // Redirect to dashboard
+        // Update user state in App component
+        if (setUser) {
+          setUser(data.user);
+        }
+        
         navigate('/dashboard');
       } else {
         setError(data.error || 'Invalid email or password');
@@ -58,29 +62,29 @@ function SignIn() {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-group">
-            <label htmlFor="email">Email Address</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder=" "
               required
               disabled={loading}
             />
+            <label htmlFor="email">Email Address</label>
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder=" "
               required
               disabled={loading}
             />
+            <label htmlFor="password">Password</label>
           </div>
 
           <div className="form-options">

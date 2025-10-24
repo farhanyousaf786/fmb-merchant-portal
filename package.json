@@ -1,0 +1,38 @@
+{
+  "name": "fmb-merchant-portal",
+  "version": "1.0.0",
+  "description": "FMB Merchant Portal - Full Stack Application",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "cd client && npm install && npm run build",
+    "install-server": "cd server && npm install",
+    "install-client": "cd client && npm install",
+    "heroku-postbuild": "npm run install-server && npm run install-client && npm run build",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start"
+  },
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  },
+  "keywords": [
+    "merchant",
+    "portal",
+    "react",
+    "node",
+    "express",
+    "firebase"
+  ],
+  "author": "FMB Team",
+  "license": "MIT",
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farhanyousaf786/fmb-merchant-portal.git"
+  }
+}
