@@ -1,0 +1,15 @@
+{
+  "name": "fmb-portal",
+  "version": "1.0.0",
+  "description": "FMB Portal - Merchant and Admin Management System",
+  "main": "server/server.js",
+  "scripts": {
+    "install-all": "cd server && npm install && cd ../client && npm install",
+    "build-client": "cd client && npm run build",
+    "start:replit": "cd server && npm install && cd ../client && npm install && npm run build && cd ../server && node server-replit.js",
+    "dev": "cd server && npm run dev"
+  },
+  "keywords": ["fmb", "portal", "merchant", "admin"],
+  "author": "Farhan Yousaf",
+  "license": "MIT"
+}
