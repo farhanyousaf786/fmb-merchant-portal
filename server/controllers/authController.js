@@ -5,13 +5,13 @@ import db from "../models/db.js";
 // Sign Up - Create new user
 const signUp = async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { first_name, last_name, email, password, role } = req.body;
 
     // Validate input
-    if (!name || !email || !password || !role) {
+    if (!first_name || !last_name || !email || !password || !role) {
       return res.status(400).json({
         success: false,
-        error: 'Please provide all required fields: name, email, password, role'
+        error: 'Please provide all required fields: first_name, last_name, email, password, role'
       });
     }
 
@@ -49,8 +49,8 @@ const signUp = async (req, res) => {
 
     // Insert user into database
     const [result] = await db.query(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hashedPassword, role]
+      'INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)',
+      [first_name, last_name, email, hashedPassword, role]
     );
 
     // Create JWT token
@@ -70,7 +70,8 @@ const signUp = async (req, res) => {
       token: token,
       user: {
         id: result.insertId,
-        name: name,
+        first_name: first_name,
+        last_name: last_name,
         email: email,
         role: role,
       }
@@ -100,7 +101,7 @@ const signIn = async (req, res) => {
 
     // Get user by email
     const [users] = await db.query(
-      'SELECT id, name, email, password, role FROM users WHERE email = ?',
+      'SELECT id, first_name, last_name, email, password, role, phone, country, address FROM users WHERE email = ?',
       [email]
     );
 
@@ -140,9 +141,13 @@ const signIn = async (req, res) => {
       token: token,
       user: {
         id: user.id,
-        name: user.name,
+        first_name: user.first_name,
+        last_name: user.last_name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        country: user.country,
+        address: user.address
       }
     });
   } catch (error) {

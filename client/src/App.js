@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 import SignIn from './pages/auth/SignIn';
 import Dashboard from './pages/dashboard/Dashboard';
+import Users from './pages/users/Users';
 import Orders from './pages/orders/Orders';
 import Catalogs from './pages/catalogs/Catalogs';
 import Checkouts from './pages/checkout_page/Checkouts';
@@ -21,17 +22,35 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in
+    // Check if user is logged in and fetch user data from server
     const token = localStorage.getItem('authToken');
-    const userData = localStorage.getItem('userData');
-    if (token && userData) {
-      setUser(JSON.parse(userData));
+    if (token) {
+      fetchUserData(token);
     }
   }, []);
 
+  const fetchUserData = async (token) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setUser(data.user);
+      } else {
+        // Token invalid, logout
+        handleLogout();
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      handleLogout();
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
     setUser(null);
   };
 
@@ -46,6 +65,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard user={user} onLogout={handleLogout} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users user={user} onLogout={handleLogout} />
               </ProtectedRoute>
             }
           />

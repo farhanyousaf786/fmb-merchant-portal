@@ -27,10 +27,14 @@ export async function setupDatabase() {
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100),
+        first_name VARCHAR(100),
+        last_name VARCHAR(100),
         email VARCHAR(100) UNIQUE,
         password VARCHAR(255),
         role ENUM('admin', 'merchant', 'staff') DEFAULT 'merchant',
+        phone VARCHAR(20),
+        country VARCHAR(100),
+        address VARCHAR(255),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -41,8 +45,8 @@ export async function setupDatabase() {
     if (rows.length === 0) {
       const hashed = await bcrypt.hash(process.env.ADMIN_PASS, 10);
       await db.query(
-        "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-        ["Super Admin", process.env.ADMIN_EMAIL, hashed, "admin"]
+        "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)",
+        ["Super", "Admin", process.env.ADMIN_EMAIL, hashed, "admin"]
       );
       console.log(`👑 Admin created: ${process.env.ADMIN_EMAIL} / ${process.env.ADMIN_PASS}`);
     } else {

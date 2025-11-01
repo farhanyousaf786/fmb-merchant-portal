@@ -1,7 +1,10 @@
 import express from "express";
-import { signIn, verifyToken } from "../controllers/authController.js";
+import { signUp, signIn, verifyToken } from "../controllers/authController.js";
 
 const router = express.Router();
+
+// Register (for admin to create users)
+router.post("/register", signUp);
 
 // Login  
 router.post("/login", signIn);

@@ -27,11 +27,10 @@ function SignIn({ setUser }) {
       const data = await response.json();
 
       if (response.ok) {
-        // Store token and user data in localStorage
+        // Store only token in localStorage
         localStorage.setItem('authToken', data.token);
-        localStorage.setItem('userData', JSON.stringify(data.user));
         
-        // Update user state in App component
+        // Update user state in App component (from API response)
         if (setUser) {
           setUser(data.user);
         }

@@ -13,6 +13,8 @@ const Sidebar = ({ user, onLogout }) => {
     navigate('/signin');
   };
 
+  const isAdmin = user?.role === 'admin';
+
   const menuItems = [
     {
       id: 'dashboard',
@@ -68,22 +70,37 @@ const Sidebar = ({ user, onLogout }) => {
     <div className="sidebar">
       {/* Header */}
       <div className="sidebar-header">
-        <div className="merchant-info">
-          <div className="merchant-avatar">
-            <span className="avatar-text">M</span>
+        {!isAdmin && (
+          <div className="merchant-info">
+            <div className="merchant-avatar">
+              <span className="avatar-text">
+                {(user?.first_name?.[0] || 'U').toUpperCase()}
+              </span>
+            </div>
+            <div className="merchant-details">
+              <h3 className="merchant-name">
+                {`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
+              </h3>
+              <p className="merchant-id">
+                Merchant ID: {user?.merchantId ?? user?.id ?? '-'}
+              </p>
+            </div>
+            <button className="expand-btn" aria-label="Expand">
+              <span>›</span>
+            </button>
           </div>
-          <div className="merchant-details">
-            <h3 className="merchant-name">
-              {user?.name || 'Famous Moms Ba...'}
-            </h3>
-            <p className="merchant-id">
-              Merchant ID: {user?.merchantId || '00751260'}
-            </p>
+        )}
+        {isAdmin && (
+          <div className="user-info">
+            <div className="user-avatar">
+              {user?.first_name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div className="user-details">
+              <div className="user-name">{user?.first_name} {user?.last_name}</div>
+              <div className="user-role">{user?.role || 'Role'}</div>
+            </div>
           </div>
-          <button className="expand-btn">
-            <span>›</span>
-          </button>
-        </div>
+        )}
       </div>
 
       {/* Navigation Menu */}
@@ -110,6 +127,7 @@ const Sidebar = ({ user, onLogout }) => {
                   />
                   <span className="nav-icon-fallback" style={{display: 'none'}}>
                     {item.id === 'dashboard' ? '📊' : 
+                     item.id === 'users' ? '👥' :
                      item.id === 'orders' ? '🛒' : 
                      item.id === 'catalogs' ? '📋' : 
                      item.id === 'checkouts' ? '💳' : 
