@@ -23,7 +23,7 @@
     "react",
     "node",
     "express",
-    "firebase"
+    "mysql"
   ],
   "author": "FMB Team",
   "license": "MIT",

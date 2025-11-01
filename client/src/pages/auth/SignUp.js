@@ -164,6 +164,7 @@ function SignUp() {
               disabled={loading}
               className="role-select"
             >
+              <option value="">Select your role</option>
               <option value="merchant">Merchant</option>
               <option value="admin">Admin</option>
             </select>

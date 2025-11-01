@@ -1,47 +1,40 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from 'url';
+import dotenv from "dotenv";
+dotenv.config();
 
-const { initializeFirebase } = require('./config/firebase');
-const firebaseRoutes = require('./routes/firebaseRoutes');
-const authRoutes = require('./routes/authRoutes');
+import authRoutes from "./routes/auth.js";
+import mediaRoutes from "./routes/media.js";
+import userRoutes from "./routes/users.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Initialize Firebase
-initializeFirebase();
+// Serve static files from public folder (React build)
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
-app.get('/', (req, res) => {
-  res.json({
-    message: 'FMB Portal API',
-    version: '1.0.0',
-    status: 'running'
-  });
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
+
+// API routes
+app.use("/api/auth", authRoutes);
+app.use("/api/media", mediaRoutes);
+app.use("/api/users", userRoutes);
+
+// Handle React routing, return all requests to React app (must be last)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
-// Auth routes
-app.use('/api/auth', authRoutes);
-
-// Firebase routes
-app.use('/api/firebase', firebaseRoutes);
-
-// Serve static files from React build (Production)
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  // Handle React routing, return all requests to React app
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
-  });
-}
 
 // Error handling middleware
 app.use((err, req, res, next) => {

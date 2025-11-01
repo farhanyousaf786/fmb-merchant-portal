@@ -11,11 +11,10 @@ fmb-merchant-portal/
 │   ├── public/
 │   └── package.json
 ├── server/                 # Node.js backend
-│   ├── config/            # Firebase configuration
+│   ├── config/            # Database configuration
 │   ├── controllers/       # API controllers
 │   ├── routes/            # API routes
 │   ├── .env               # Environment variables (not in git)
-│   ├── serviceAccountKey.json  # Firebase credentials (not in git)
 │   └── package.json
 └── README.md
 ```
@@ -24,7 +23,7 @@ fmb-merchant-portal/
 
 - Node.js (v14 or higher)
 - npm or yarn
-- Firebase account with Firestore enabled
+- MySQL database server
 
 ## 🔧 Setup Instructions
 
@@ -42,13 +41,23 @@ cd server
 npm install
 ```
 
-**Configure Firebase:**
-- Get your Firebase service account key from [Firebase Console](https://console.firebase.google.com/)
-- Save it as `serviceAccountKey.json` in the `server/` directory
-- Copy `.env.example` to `.env` and configure:
+**Configure Database:**
+- Set up a MySQL database server
+- Create a database named `fmb_portal` (or use your preferred name)
+- Copy `.env.example` to `.env` and configure your database connection:
 
 ```bash
 cp .env.example .env
+```
+
+Edit the `.env` file with your MySQL credentials:
+```
+DB_HOST=localhost
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=fmb_portal
+DB_PORT=3306
+JWT_SECRET=your-super-secret-jwt-key
 ```
 
 **Start the server:**
@@ -69,34 +78,36 @@ npm start
 
 Client runs on: `http://localhost:3000`
 
-## 🔥 Firebase Setup
+## 🗄️ Database Setup
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create a new project or select existing
-3. Enable Firestore Database
-4. Go to Project Settings → Service Accounts
-5. Click "Generate new private key"
-6. Save the downloaded JSON as `serviceAccountKey.json` in `server/` directory
+The application will automatically create the necessary tables when you start the server for the first time. Make sure your MySQL server is running and the database exists.
+
+### Database Schema
+
+The `users` table will be created with the following structure:
+- `id` - Auto-incrementing primary key
+- `name` - User's full name
+- `email` - Unique email address
+- `password` - Hashed password
+- `role` - User role (admin or merchant)
+- `created_at` - Timestamp of creation
+- `updated_at` - Timestamp of last update
 
 ## 🌐 API Endpoints
 
 Base URL: `http://localhost:5001/api`
 
-### Firebase Routes
+### Authentication Routes
 
-- `GET /firebase/:collection` - Get all documents
-- `GET /firebase/:collection/:id` - Get document by ID
-- `POST /firebase/:collection` - Create new document
-- `PUT /firebase/:collection/:id` - Update document
-- `DELETE /firebase/:collection/:id` - Delete document
-- `POST /firebase/auth/verify` - Verify Firebase auth token
+- `POST /auth/signup` - Create new user account
+- `POST /auth/signin` - Authenticate user and get token
+- `POST /auth/verify` - Verify JWT token
 
 ## 🛡️ Security Notes
 
 **IMPORTANT:** Never commit these files to Git:
-- `server/.env`
-- `server/serviceAccountKey.json`
-- Any Firebase credentials
+- `server/.env` - Contains database credentials and JWT secret
+- Any database credentials or sensitive configuration
 
 These are already in `.gitignore` for your protection.
 
@@ -108,9 +119,11 @@ These are already in `.gitignore` for your protection.
 
 ### Backend
 - Node.js
-- Express 4.18.2
-- Firebase Admin SDK 11.11.0
-- dotenv 16.3.1
+- Express 4.21.2
+- MySQL2 3.6.5
+- bcrypt 5.1.1 (password hashing)
+- jsonwebtoken 9.0.2 (authentication)
+- dotenv 16.6.1
 - nodemon 3.0.1 (dev)
 
 ## 🚀 Deployment
@@ -118,7 +131,7 @@ These are already in `.gitignore` for your protection.
 ### Backend
 - Deploy to services like Heroku, Railway, or Render
 - Set environment variables in deployment platform
-- Upload Firebase service account key securely
+- Configure MySQL database connection securely
 
 ### Frontend
 - Deploy to Vercel, Netlify, or similar
