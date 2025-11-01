@@ -49,7 +49,7 @@ const signUp = async (req, res) => {
 
     // Insert user into database
     const [result] = await db.query(
-      'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
       [name, email, hashedPassword, role]
     );
 
@@ -100,7 +100,7 @@ const signIn = async (req, res) => {
 
     // Get user by email
     const [users] = await db.query(
-      'SELECT id, name, email, password_hash, role FROM users WHERE email = ?',
+      'SELECT id, name, email, password, role FROM users WHERE email = ?',
       [email]
     );
 
@@ -114,7 +114,7 @@ const signIn = async (req, res) => {
     const user = users[0];
 
     // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
       return res.status(401).json({

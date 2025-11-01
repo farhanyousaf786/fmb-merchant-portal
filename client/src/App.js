@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import SignIn from './pages/auth/SignIn';
-import SignUp from './pages/auth/SignUp';
 import Dashboard from './pages/dashboard/Dashboard';
 import Orders from './pages/orders/Orders';
 import Catalogs from './pages/catalogs/Catalogs';
@@ -42,7 +41,6 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/signin" />} />
           <Route path="/signin" element={<SignIn setUser={setUser} />} />
-          <Route path="/signup" element={<SignUp />} />
           <Route
             path="/dashboard"
             element={

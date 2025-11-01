@@ -103,11 +103,8 @@ function SignIn({ setUser }) {
         </form>
 
         <div className="signin-footer">
-          <p>
-            Don't have an account?{' '}
-            <a href="/signup" className="signup-link">
-              Sign Up
-            </a>
+          <p className="footer-text">
+            FMB Merchant Portal - Admin Access Only
           </p>
         </div>
       </div>
