@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AlertDialog from '../../../../universal_components/AlertDialog/AlertDialog';
+import PersonalInfoTab from './components/PersonalInfoTab';
 import './UsersManagement.css';
 
 const UsersManagement = ({ user }) => {
@@ -384,52 +385,8 @@ const UsersManagement = ({ user }) => {
             </div>
             
             <div className="user-detail-content">
-              <div className="detail-section">
-                <h3>Personal Information</h3>
-                <div className="detail-grid">
-                  <div className="detail-item">
-                    <label>ID:</label>
-                    <span>{selectedUser.id}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Contact Name:</label>
-                    <span>{selectedUser.primary_contact_name || `${selectedUser.first_name} ${selectedUser.last_name}`}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Email:</label>
-                    <span>{selectedUser.email}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Business Name:</label>
-                    <span>{selectedUser.business_name || '-'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Phone:</label>
-                    <span>{selectedUser.phone || '-'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Country:</label>
-                    <span>{selectedUser.country || '-'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Status:</label>
-                    <span className={`status-badge ${selectedUser.status}`}>
-                      {selectedUser.status || 'approved'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Role:</label>
-                    <span className={`role-badge ${selectedUser.role}`}>
-                      {selectedUser.role || '-'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <label>Created:</label>
-                    <span>{new Date(selectedUser.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-              </div>
-
+              <PersonalInfoTab selectedUser={selectedUser} />
+              
               <div className="detail-actions-section">
                 <h3>Actions</h3>
                 <div className="detail-actions-grid">

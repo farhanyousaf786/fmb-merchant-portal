@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import './ProfileInfo.css';
 
 const ProfileInfo = ({ user }) => {
+  // Debug: Log the user data
+  console.log('ProfileInfo - User Data:', user);
+  console.log('ProfileInfo - Business Name:', user?.business_name);
+  console.log('ProfileInfo - Legal Address:', user?.legal_address);
+  console.log('ProfileInfo - Primary Contact:', user?.primary_contact_name);
+  
   const [editMode, setEditMode] = useState(false);
   const [displayData, setDisplayData] = useState({
     first_name: user?.first_name || '',
@@ -9,6 +15,9 @@ const ProfileInfo = ({ user }) => {
     phone: user?.phone || '',
     country: user?.country || '',
     address: user?.address || '',
+    business_name: user?.business_name || '',
+    legal_address: user?.legal_address || '',
+    primary_contact_name: user?.primary_contact_name || '',
     email: user?.email || '',
     role: user?.role || ''
   });
@@ -18,6 +27,9 @@ const ProfileInfo = ({ user }) => {
     phone: user?.phone || '',
     country: user?.country || '',
     address: user?.address || '',
+    businessName: user?.business_name || '',
+    legalAddress: user?.legal_address || '',
+    primaryContactName: user?.primary_contact_name || '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
@@ -32,6 +44,9 @@ const ProfileInfo = ({ user }) => {
         phone: user.phone || '',
         country: user.country || '',
         address: user.address || '',
+        business_name: user.business_name || '',
+        legal_address: user.legal_address || '',
+        primary_contact_name: user.primary_contact_name || '',
         email: user.email || '',
         role: user.role || ''
       });
@@ -41,6 +56,9 @@ const ProfileInfo = ({ user }) => {
         phone: user.phone || '',
         country: user.country || '',
         address: user.address || '',
+        businessName: user.business_name || '',
+        legalAddress: user.legal_address || '',
+        primaryContactName: user.primary_contact_name || '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
@@ -63,7 +81,10 @@ const ProfileInfo = ({ user }) => {
         lastName: profileData.lastName,
         phone: profileData.phone,
         country: profileData.country,
-        address: profileData.address
+        address: profileData.address,
+        businessName: profileData.businessName,
+        legalAddress: profileData.legalAddress,
+        primaryContactName: profileData.primaryContactName
       };
 
       if (profileData.newPassword) {
@@ -91,6 +112,9 @@ const ProfileInfo = ({ user }) => {
           phone: profileData.phone,
           country: profileData.country,
           address: profileData.address,
+          business_name: profileData.businessName,
+          legal_address: profileData.legalAddress,
+          primary_contact_name: profileData.primaryContactName,
           email: user?.email || '',
           role: user?.role || ''
         });
@@ -103,6 +127,9 @@ const ProfileInfo = ({ user }) => {
           phone: profileData.phone,
           country: profileData.country,
           address: profileData.address,
+          businessName: profileData.businessName,
+          legalAddress: profileData.legalAddress,
+          primaryContactName: profileData.primaryContactName,
           currentPassword: '',
           newPassword: '',
           confirmPassword: ''
@@ -124,6 +151,9 @@ const ProfileInfo = ({ user }) => {
       phone: user?.phone || '',
       country: user?.country || '',
       address: user?.address || '',
+      businessName: user?.business_name || '',
+      legalAddress: user?.legal_address || '',
+      primaryContactName: user?.primary_contact_name || '',
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
@@ -202,6 +232,30 @@ const ProfileInfo = ({ user }) => {
               <div className="field-display">{displayData.address || '-'}</div>
             </div>
           </div>
+
+          {/* Business Details Section */}
+          {displayData.role === 'merchant' && (
+            <>
+              <div className="form-section-title" style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+                Business Information
+              </div>
+              
+              <div className="form-field full-width">
+                <label>Business Name</label>
+                <div className="field-display">{displayData.business_name || '-'}</div>
+              </div>
+
+              <div className="form-field full-width">
+                <label>Legal Address</label>
+                <div className="field-display">{displayData.legal_address || '-'}</div>
+              </div>
+
+              <div className="form-field full-width">
+                <label>Primary Contact Name</label>
+                <div className="field-display">{displayData.primary_contact_name || '-'}</div>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <form onSubmit={handleUpdateProfile} className="profile-form">
@@ -290,6 +344,45 @@ const ProfileInfo = ({ user }) => {
               />
             </div>
           </div>
+
+          {/* Business Details Section for Merchants */}
+          {user?.role === 'merchant' && (
+            <>
+              <div className="form-section-title" style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+                Business Information
+              </div>
+              
+              <div className="form-field full-width">
+                <label>Business Name</label>
+                <input
+                  type="text"
+                  value={profileData.businessName}
+                  onChange={(e) => setProfileData({...profileData, businessName: e.target.value})}
+                  placeholder="Enter business name"
+                />
+              </div>
+
+              <div className="form-field full-width">
+                <label>Legal Address</label>
+                <input
+                  type="text"
+                  value={profileData.legalAddress}
+                  onChange={(e) => setProfileData({...profileData, legalAddress: e.target.value})}
+                  placeholder="Enter legal address"
+                />
+              </div>
+
+              <div className="form-field full-width">
+                <label>Primary Contact Name</label>
+                <input
+                  type="text"
+                  value={profileData.primaryContactName}
+                  onChange={(e) => setProfileData({...profileData, primaryContactName: e.target.value})}
+                  placeholder="Enter primary contact name"
+                />
+              </div>
+            </>
+          )}
 
           <div className="form-actions-bottom">
             <button type="button" className="cancel-btn-outline" onClick={handleCancelEdit}>

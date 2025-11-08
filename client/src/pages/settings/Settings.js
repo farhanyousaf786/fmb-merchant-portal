@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from '../sidebar/Sidebar';
 import SettingsSidebar from './components/SettingsSidebar/SettingsSidebar';
 import ProfileInfo from './components/ProfileInfo/ProfileInfo';
+import BusinessDetails from './components/BusinessDetails/BusinessDetails';
 import UsersManagement from './components/UsersManagement/UsersManagement';
 import './Settings.css';
 
@@ -28,13 +29,7 @@ const Settings = ({ user, onLogout }) => {
             <div className="settings-content-area">
               {activeTab === 'profile' && <ProfileInfo user={user} />}
 
-              {(activeTab === 'business' || activeTab === 'preferences' || 
-                activeTab === 'notifications' || activeTab === 'security') && (
-                <div className="placeholder-content">
-                  <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</h2>
-                  <p>This section is under development.</p>
-                </div>
-              )}
+              {activeTab === 'business' && <BusinessDetails user={user} />}
 
               {activeTab === 'users' && isAdmin && (
                 <>

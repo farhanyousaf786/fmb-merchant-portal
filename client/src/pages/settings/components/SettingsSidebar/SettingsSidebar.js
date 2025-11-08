@@ -16,35 +16,12 @@ const SettingsSidebar = ({ activeTab, setActiveTab, isAdmin }) => {
       >
         Business Details
       </button>
-      <button
-        className={`settings-nav-btn ${activeTab === 'preferences' ? 'active' : ''}`}
-        onClick={() => setActiveTab('preferences')}
-      >
-        Preferences
-      </button>
-      <button
-        className={`settings-nav-btn ${activeTab === 'notifications' ? 'active' : ''}`}
-        onClick={() => setActiveTab('notifications')}
-      >
-        Notifications
-      </button>
-      <button
-        className={`settings-nav-btn ${activeTab === 'security' ? 'active' : ''}`}
-        onClick={() => setActiveTab('security')}
-      >
-        Security
-      </button>
       {isAdmin && (
         <button
           className={`settings-nav-btn ${activeTab === 'users' ? 'active' : ''}`}
           onClick={() => setActiveTab('users')}
         >
           Users Management
-        </button>
-      )}
-      {isAdmin && (
-        <button className="settings-nav-btn delete-account-btn">
-          Delete account
         </button>
       )}
     </div>

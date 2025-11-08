@@ -20,9 +20,9 @@ const getCurrentUser = async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const userId = decoded.userId;
 
-    // Get user data
+    // Get user data - INCLUDING BUSINESS FIELDS
     const [users] = await db.query(
-      'SELECT id, first_name, last_name, email, role, phone, country, address FROM users WHERE id = ?',
+      'SELECT id, first_name, last_name, email, role, phone, country, address, business_name, legal_address, primary_contact_name, status, created_at FROM users WHERE id = ?',
       [userId]
     );
 
@@ -184,11 +184,43 @@ const updateUserStatus = async (req, res) => {
   }
 };
 
+// Admin: Get user's business phones
+const getUserBusinessPhones = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [phones] = await db.query(
+      'SELECT * FROM business_phones WHERE user_id = ? ORDER BY is_primary DESC, created_at ASC',
+      [id]
+    );
+    res.json({ success: true, phones });
+  } catch (error) {
+    console.error('Get user business phones error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get business phones' });
+  }
+};
+
+// Admin: Get user's shipping addresses
+const getUserShippingAddresses = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [addresses] = await db.query(
+      'SELECT * FROM shipping_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at ASC',
+      [id]
+    );
+    res.json({ success: true, addresses });
+  } catch (error) {
+    console.error('Get user shipping addresses error:', error);
+    res.status(500).json({ success: false, error: 'Failed to get shipping addresses' });
+  }
+};
+
 export {
   getCurrentUser,
   getAllUsers,
   deleteUser,
   updateUserPassword,
   assignRole,
-  updateUserStatus
+  updateUserStatus,
+  getUserBusinessPhones,
+  getUserShippingAddresses
 };

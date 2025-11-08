@@ -47,7 +47,41 @@ export async function setupDatabase(db) {
     `);
     console.log("✅ Media table created/verified");
 
-    // 3️⃣ Check if admin user exists
+    // 3️⃣ Create business_phones table
+    console.log("📝 Creating business_phones table...");
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS business_phones (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        phone_number VARCHAR(20) NOT NULL,
+        phone_type ENUM('mobile', 'office', 'fax', 'other') DEFAULT 'office',
+        is_primary BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log("✅ Business phones table created/verified");
+
+    // 4️⃣ Create shipping_addresses table
+    console.log("📝 Creating shipping_addresses table...");
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS shipping_addresses (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        address_label VARCHAR(100) NOT NULL,
+        full_address TEXT NOT NULL,
+        city VARCHAR(100),
+        state VARCHAR(100),
+        postal_code VARCHAR(20),
+        country VARCHAR(100),
+        is_default BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log("✅ Shipping addresses table created/verified");
+
+    // 5️⃣ Check if admin user exists
     console.log(`🔍 Checking for admin user: ${process.env.ADMIN_EMAIL}`);
     console.log("📋 Admin email from env:", process.env.ADMIN_EMAIL);
     

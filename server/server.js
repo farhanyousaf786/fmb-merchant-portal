@@ -10,6 +10,7 @@ import { setupDatabase } from "./setup-database.js";
 import authRoutes from "./routes/auth.js";
 import mediaRoutes from "./routes/media.js";
 import userRoutes from "./routes/users.js";
+import merchantRoutes from "./routes/merchant.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,6 +33,7 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", authRoutes);
 app.use("/api/media", mediaRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/merchant", merchantRoutes);
 
 // Handle React routing, return all requests to React app (must be last)
 app.get('*', (req, res) => {

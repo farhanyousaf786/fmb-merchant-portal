@@ -1,17 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
-import SignIn from './pages/auth/SignIn';
-import SignUp from './pages/SignUp/SignUp';
-import Dashboard from './pages/dashboard/Dashboard';
-import Users from './pages/users/Users';
-import Orders from './pages/orders/Orders';
-import Catalogs from './pages/catalogs/Catalogs';
-import Checkouts from './pages/checkout_page/Checkouts';
-import Invoices from './pages/invoices/Invoices';
-import Trackings from './pages/tracking_page/Trackings';
-import Support from './pages/support_page/Support';
-import Settings from './pages/settings/Settings';
+
+// Lazy load components for better performance
+const SignIn = React.lazy(() => import('./pages/auth/SignIn'));
+const SignUp = React.lazy(() => import('./pages/SignUp/SignUp'));
+const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
+const Users = React.lazy(() => import('./pages/users/Users'));
+const Orders = React.lazy(() => import('./pages/orders/Orders'));
+const Catalogs = React.lazy(() => import('./pages/catalogs/Catalogs'));
+const Checkouts = React.lazy(() => import('./pages/checkout_page/Checkouts'));
+const Invoices = React.lazy(() => import('./pages/invoices/Invoices'));
+const Trackings = React.lazy(() => import('./pages/tracking_page/Trackings'));
+const Support = React.lazy(() => import('./pages/support_page/Support'));
+const Settings = React.lazy(() => import('./pages/settings/Settings'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    fontSize: '18px',
+    color: '#666'
+  }}>
+    Loading...
+  </div>
+);
 
 // Protected Route Component
 function ProtectedRoute({ children }) {
@@ -58,83 +74,85 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Routes>
-          <Route path="/" element={<Navigate to="/signin" />} />
-          <Route path="/signin" element={<SignIn setUser={setUser} />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <Users user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <ProtectedRoute>
-                <Orders user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/catalogs"
-            element={
-              <ProtectedRoute>
-                <Catalogs user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/checkouts"
-            element={
-              <ProtectedRoute>
-                <Checkouts user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/invoices"
-            element={
-              <ProtectedRoute>
-                <Invoices user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/trackings"
-            element={
-              <ProtectedRoute>
-                <Trackings user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/support"
-            element={
-              <ProtectedRoute>
-                <Support user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <Settings user={user} onLogout={handleLogout} />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
+            <Route path="/" element={<Navigate to="/signin" />} />
+            <Route path="/signin" element={<SignIn setUser={setUser} />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <Users user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <Orders user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/catalogs"
+              element={
+                <ProtectedRoute>
+                  <Catalogs user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkouts"
+              element={
+                <ProtectedRoute>
+                  <Checkouts user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invoices"
+              element={
+                <ProtectedRoute>
+                  <Invoices user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/trackings"
+              element={
+                <ProtectedRoute>
+                  <Trackings user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/support"
+              element={
+                <ProtectedRoute>
+                  <Support user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </div>
     </Router>
   );
