@@ -1,0 +1,6 @@
+.recent-orders-card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:16px;margin-top:16px}
+.recent-orders-card .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.recent-orders-card h3{margin:0;font-size:16px;color:#111827}
+.orders-table{border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;margin-top:8px}
+.orders-head{display:grid;grid-template-columns:120px 1fr 120px 160px 160px 140px;gap:0;background:#f9fafb;color:#374151;font-weight:600;padding:12px}
+.orders-empty{padding:24px;text-align:center;color:#6b7280}

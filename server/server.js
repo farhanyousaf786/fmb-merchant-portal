@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import dotenv from "dotenv";
 dotenv.config();
 
+import db from "./models/db.js";
+import { setupDatabase } from "./setup-database.js";
 import authRoutes from "./routes/auth.js";
 import mediaRoutes from "./routes/media.js";
 import userRoutes from "./routes/users.js";
@@ -54,7 +56,25 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+const startServer = async () => {
+  try {
+    console.log("🚀 Starting server setup...");
+    
+    // Setup database and create admin user
+    await setupDatabase(db);
+    
+    console.log("✅ Database setup completed, starting server...");
+    
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    console.error('Error details:', error.message);
+    console.error('Stack trace:', error.stack);
+    process.exit(1);
+  }
+};
+
+startServer();

@@ -36,7 +36,15 @@ const Settings = ({ user, onLogout }) => {
                 </div>
               )}
 
-              {activeTab === 'users' && isAdmin && <UsersManagement user={user} />}
+              {activeTab === 'users' && isAdmin && (
+                <>
+                  <div className="page-section-header">
+                    <h2>Users Management</h2>
+                    <p>Manage all registered users and their permissions</p>
+                  </div>
+                  <UsersManagement user={user} />
+                </>
+              )}
             </div>
           </div>
         </div>

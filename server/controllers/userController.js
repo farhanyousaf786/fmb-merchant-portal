@@ -1,6 +1,8 @@
 import db from "../models/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import UserFactory from "../models/UserFactory.js";
+import Admin from "../models/Admin.js";
 
 // Get current user data
 const getCurrentUser = async (req, res) => {
@@ -76,11 +78,11 @@ const updateUserPassword = async (req, res) => {
 // Get all users
 const getAllUsers = async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT id, first_name, last_name, email, role, created_at FROM users ORDER BY created_at DESC');
+    const users = await UserFactory.findAll();
     
     res.json({
       success: true,
-      users: rows
+      users: users.map(user => user.toSafeObject())
     });
   } catch (error) {
     console.error('Get users error:', error);
@@ -124,9 +126,69 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Assign role and approve user
+const assignRole = async (req, res) => {
+  try {
+    const { role, status } = req.body;
+    const userId = req.params.id;
+
+    if (!role || !status) {
+      return res.status(400).json({
+        success: false,
+        error: 'Role and status are required'
+      });
+    }
+
+    const updatedUser = await UserFactory.updateRole(userId, role, status);
+
+    res.json({
+      success: true,
+      message: 'Role assigned and user approved successfully',
+      user: updatedUser.toSafeObject()
+    });
+  } catch (error) {
+    console.error('Assign role error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to assign role'
+    });
+  }
+};
+
+// Update user status
+const updateUserStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const userId = req.params.id;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        error: 'Status is required'
+      });
+    }
+
+    const updatedUser = await UserFactory.update(userId, { status });
+
+    res.json({
+      success: true,
+      message: 'User status updated successfully',
+      user: updatedUser.toSafeObject()
+    });
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update user status'
+    });
+  }
+};
+
 export {
   getCurrentUser,
   getAllUsers,
   deleteUser,
-  updateUserPassword
+  updateUserPassword,
+  assignRole,
+  updateUserStatus
 };

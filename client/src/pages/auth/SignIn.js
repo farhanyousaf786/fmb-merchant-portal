@@ -61,29 +61,31 @@ function SignIn({ setUser }) {
           {error && <div className="error-message">{error}</div>}
 
           <div className="form-group">
+            <label htmlFor="email" className="form-label">Email Address</label>
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder=" "
+              placeholder="Enter your email address"
               required
               disabled={loading}
+              className="form-input"
             />
-            <label htmlFor="email">Email Address</label>
           </div>
 
           <div className="form-group">
+            <label htmlFor="password" className="form-label">Password</label>
             <input
               type="password"
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder=" "
+              placeholder="Enter your password"
               required
               disabled={loading}
+              className="form-input"
             />
-            <label htmlFor="password">Password</label>
           </div>
 
           <div className="form-options">
@@ -102,6 +104,9 @@ function SignIn({ setUser }) {
         </form>
 
         <div className="signin-footer">
+          <div className="signup-link">
+            <p>Don't have an account? <button onClick={() => navigate('/signup')} className="link-button">Sign Up</button></p>
+          </div>
           <p className="footer-text">
             FMB Merchant Portal - Admin Access Only
           </p>

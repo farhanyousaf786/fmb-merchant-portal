@@ -10,7 +10,7 @@
 }
 
 .dashboard-container {
-  padding: 32px;
+  padding: 24px 32px;
   max-width: 1200px;
 }
 
@@ -19,10 +19,10 @@
 }
 
 .dashboard-header h1 {
-  font-size: 32px;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 8px 0;
+  font-size: 36px;
+  font-weight: 800;
+  color: #0a2a82; /* deep brand blue */
+  margin: 8px 0 12px 0;
 }
 
 .dashboard-header p {
@@ -129,6 +129,21 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 24px;
+}
+
+/* Main grid: left content 782px, right sidebar column auto (approx 374px) */
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 782px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.dashboard-left {
+  width: 782px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .recent-orders {

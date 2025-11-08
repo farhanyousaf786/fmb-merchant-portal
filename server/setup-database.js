@@ -1,61 +1,91 @@
 import mysql from "mysql2/promise";
 import bcrypt from "bcryptjs";
+import Admin from "./models/Admin.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-export async function setupDatabase() {
+export async function setupDatabase(db) {
   try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-    });
+    console.log("🔧 Setting up database tables...");
 
-    // 1️⃣ Create Database if not exists
-    await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
-    console.log(`✅ Database '${process.env.DB_NAME}' ready.`);
-
-    // 2️⃣ Connect to the new DB
-    const db = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-    });
-
-    // 3️⃣ Create users table
+    // 1️⃣ Create users table
+    console.log("📝 Creating users table...");
     await db.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        first_name VARCHAR(100),
-        last_name VARCHAR(100),
-        email VARCHAR(100) UNIQUE,
-        password VARCHAR(255),
-        role ENUM('admin', 'merchant', 'staff') DEFAULT 'merchant',
+        first_name VARCHAR(100) NOT NULL,
+        last_name VARCHAR(100) NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('admin','merchant','staff') DEFAULT NULL,
         phone VARCHAR(20),
         country VARCHAR(100),
         address VARCHAR(255),
+        business_name VARCHAR(255),
+        legal_address VARCHAR(500),
+        primary_contact_name VARCHAR(200),
+        status ENUM('pending','approved','rejected') DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log("✅ Users table ready.");
+    console.log("✅ Users table created/verified");
 
-    // 4️⃣ Create default admin
-    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [process.env.ADMIN_EMAIL]);
-    if (rows.length === 0) {
-      const hashed = await bcrypt.hash(process.env.ADMIN_PASS, 10);
-      await db.query(
-        "INSERT INTO users (first_name, last_name, email, password, role) VALUES (?, ?, ?, ?, ?)",
-        ["Super", "Admin", process.env.ADMIN_EMAIL, hashed, "admin"]
-      );
-      console.log(`👑 Admin created: ${process.env.ADMIN_EMAIL} / ${process.env.ADMIN_PASS}`);
+    // 2️⃣ Create media table
+    console.log("📝 Creating media table...");
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS media (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        filename VARCHAR(255) NOT NULL,
+        original_name VARCHAR(255) NOT NULL,
+        file_size BIGINT NOT NULL,
+        mime_type VARCHAR(100) NOT NULL,
+        file_path VARCHAR(500) NOT NULL,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+    console.log("✅ Media table created/verified");
+
+    // 3️⃣ Check if admin user exists
+    console.log(`🔍 Checking for admin user: ${process.env.ADMIN_EMAIL}`);
+    console.log("📋 Admin email from env:", process.env.ADMIN_EMAIL);
+    
+    // Use Admin model to check if admin exists
+    console.log("🔎 Checking if admin exists using Admin model...");
+    const existingAdmin = await Admin.findByEmail(process.env.ADMIN_EMAIL);
+    console.log("📊 Admin check result:", existingAdmin ? "Admin exists" : "Admin does not exist");
+    
+    if (!existingAdmin) {
+      console.log("👤 Creating admin user using Admin model...");
+      console.log("📋 Admin pass from env:", process.env.ADMIN_PASS ? "Exists" : "Missing");
+      
+      // Create admin using Admin model
+      const admin = await Admin.create({
+        first_name: 'Admin',
+        last_name: 'User',
+        email: process.env.ADMIN_EMAIL,
+        password: process.env.ADMIN_PASS,
+        phone: '+1234567890',
+        country: 'US',
+        address: 'System Admin'
+      });
+
+      console.log(`✅ Admin user created with ID: ${admin.id}`);
+      console.log(`   Email: ${admin.email}`);
+      console.log(`   Role: ${admin.role}`);
+      console.log(`   Status: ${admin.status}`);
     } else {
-      console.log("👑 Admin already exists.");
+      console.log("✅ Admin user already exists");
+      console.log(`   ID: ${existingAdmin.id}, Role: ${existingAdmin.role}`);
     }
 
-    await db.end();
-    await connection.end();
-  } catch (err) {
-    console.error("❌ Database setup failed:", err);
+    console.log("🎉 Database setup completed successfully!");
+    return true;
+  } catch (error) {
+    console.error("❌ Database setup failed:", error.message);
+    console.error("Full error details:", error);
+    console.error("Stack trace:", error.stack);
+    throw error;
   }
 }
