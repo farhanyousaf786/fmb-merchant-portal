@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from '../sidebar/Sidebar';
+import FiltersBar from '../dashboard/components/FiltersBar/FiltersBar';
 import './Orders.css';
 
 const Orders = ({ user, onLogout }) => {
@@ -7,14 +8,19 @@ const Orders = ({ user, onLogout }) => {
     <div className="dashboard-layout">
       <Sidebar user={user} onLogout={onLogout} />
       <div className="main-content">
-        <div className="dashboard-container">
-          <header className="dashboard-header">
+        <div className="orders-container">
+          <div className="orders-header-row">
             <h1>Orders</h1>
-            <p>Manage your orders and track their status</p>
-          </header>
-          <div className="content-placeholder">
-            <h2>🛒 Orders Management</h2>
-            <p>This page will show all your orders with filtering and search capabilities.</p>
+            <FiltersBar />
+          </div>
+          <div className="orders-empty-state">
+            <div className="empty-icon">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 3H5L5.4 5M7 13H17L21 5H5.4M7 13L5.4 5M7 13L4.7 15.3C4.3 15.7 4.6 16.5 5.1 16.5H17M17 13V17C17 18.1 16.1 19 15 19H9C7.9 19 7 18.1 7 17V13M9 21C9.6 21 10 20.6 10 20S9.6 19 9 19 8 19.4 8 20 8.4 21 9 21ZM20 21C20.6 21 21 20.6 21 20S20.6 19 20 19 19 19.4 19 20 19.4 21 20 21Z" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <h2>You haven't placed any orders yet.</h2>
+            <button className="start-new-order-btn">Start New Order</button>
           </div>
         </div>
       </div>

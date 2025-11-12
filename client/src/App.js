@@ -8,7 +8,7 @@ const SignUp = React.lazy(() => import('./pages/SignUp/SignUp'));
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
 const Orders = React.lazy(() => import('./pages/orders/Orders'));
-const Catalogs = React.lazy(() => import('./pages/catalogs/Catalogs'));
+const Catalogs = React.lazy(() => import('./pages/catalog/Catalog'));
 const Checkouts = React.lazy(() => import('./pages/checkout_page/Checkouts'));
 const Invoices = React.lazy(() => import('./pages/invoices/Invoices'));
 const Trackings = React.lazy(() => import('./pages/tracking_page/Trackings'));
