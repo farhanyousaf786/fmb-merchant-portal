@@ -55,7 +55,14 @@
   margin-bottom: 2rem;
 }
 
-.role-toggle,
+.role-toggle {
+  display: flex;
+  background: #3b4a6b;
+  border-radius: 25px;
+  padding: 4px;
+  gap: 2px;
+}
+
 .auth-toggle {
   display: flex;
   background: #ffffff;
@@ -87,7 +94,20 @@
   color: #2d3748;
 }
 
-/* Remove the specific admin toggle styling since we want both to be white */
+/* Specific styling for role toggle (Merchant/Admin) - dark blue background */
+.role-toggle .toggle-btn {
+  color: #ffffff;
+}
+
+.role-toggle .toggle-btn.active {
+  background: #d4af37;
+  color: #ffffff;
+}
+
+.role-toggle .toggle-btn:not(.active):hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
 
 .auth-header {
   text-align: left;
