@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App.css';
 
 // Lazy load components for better performance
-const SignIn = React.lazy(() => import('./pages/auth/SignIn'));
+const Auth = React.lazy(() => import('./pages/auth/Auth'));
 const SignUp = React.lazy(() => import('./pages/SignUp/SignUp'));
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
@@ -76,9 +76,10 @@ function App() {
       <div className="App">
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/signin" />} />
-            <Route path="/signin" element={<SignIn setUser={setUser} />} />
-            <Route path="/signup" element={<SignUp />} />
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/auth" element={<Auth setUser={setUser} />} />
+            <Route path="/signin" element={<Auth setUser={setUser} />} />
+            <Route path="/signup" element={<Auth setUser={setUser} />} />
             <Route
               path="/dashboard"
               element={
