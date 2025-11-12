@@ -17,41 +17,29 @@ const Auth = ({ setUser }) => {
     setError('');
     setLoading(true);
 
+    // Bypass authentication for now - go directly to dashboard
     try {
-      const endpoint = isSignIn ? '/auth/signin' : '/auth/register';
-      const payload = isSignIn 
-        ? { email, password }
-        : { email, password, firstName, lastName, role: 'merchant' };
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        if (isSignIn) {
-          localStorage.setItem('authToken', data.token);
-          if (setUser) {
-            setUser(data.user);
-          }
-          navigate('/dashboard');
-        } else {
-          alert('Registration successful! Please sign in.');
-          setIsSignIn(true);
-          resetForm();
+      // Simulate loading for better UX
+      setTimeout(() => {
+        // Set a dummy token and user for now
+        localStorage.setItem('authToken', 'dummy-token-for-testing');
+        if (setUser) {
+          setUser({ 
+            id: 1, 
+            email: email || 'test@example.com', 
+            role: 'merchant',
+            firstName: 'Test',
+            lastName: 'User',
+            businessName: 'Famous Moms Bakery',
+            merchantId: '007S1260'
+          });
         }
-      } else {
-        setError(data.error || `${isSignIn ? 'Sign in' : 'Registration'} failed`);
-      }
+        navigate('/dashboard');
+        setLoading(false);
+      }, 1000);
     } catch (err) {
-      setError(`${isSignIn ? 'Sign in' : 'Registration'} failed. Please try again.`);
-      console.error('Auth error:', err);
-    } finally {
+      setError('Something went wrong. Please try again.');
+      console.error('Navigation error:', err);
       setLoading(false);
     }
   };

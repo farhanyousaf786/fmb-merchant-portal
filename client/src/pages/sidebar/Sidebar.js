@@ -14,6 +14,12 @@ const Sidebar = ({ user, onLogout }) => {
   };
 
   const isAdmin = user?.role === 'admin';
+  
+  // Add business info for merchants if not present
+  const merchantInfo = {
+    businessName: user?.businessName || 'Famous Moms Bakery',
+    merchantId: user?.merchantId || '007S1260'
+  };
 
   const menuItems = [
     {
@@ -74,15 +80,15 @@ const Sidebar = ({ user, onLogout }) => {
           <div className="merchant-info">
             <div className="merchant-avatar">
               <span className="avatar-text">
-                {(user?.first_name?.[0] || 'U').toUpperCase()}
+                {merchantInfo.businessName[0].toUpperCase()}
               </span>
             </div>
             <div className="merchant-details">
               <h3 className="merchant-name">
-                {`${user?.first_name || ''} ${user?.last_name || ''}`.trim() || 'User'}
+                {merchantInfo.businessName}
               </h3>
               <p className="merchant-id">
-                Merchant ID: {user?.merchantId ?? user?.id ?? '-'}
+                Merchant ID: {merchantInfo.merchantId}
               </p>
             </div>
             <button className="expand-btn" aria-label="Expand">

@@ -11,18 +11,21 @@
 
 .dashboard-container {
   padding: 24px 32px;
-  max-width: 1200px;
+  width: 100%;
 }
 
-.dashboard-header {
+.dashboard-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 32px;
 }
 
-.dashboard-header h1 {
+.dashboard-header-row h1 {
   font-size: 36px;
   font-weight: 800;
   color: #0a2a82; /* deep brand blue */
-  margin: 8px 0 12px 0;
+  margin: 0;
 }
 
 .dashboard-header p {
@@ -131,16 +134,16 @@
   gap: 24px;
 }
 
-/* Main grid: left content 782px, right sidebar column auto (approx 374px) */
+/* Main grid: flexible layout that uses full width */
 .dashboard-main-grid {
   display: grid;
-  grid-template-columns: 782px 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr 400px;
+  gap: 24px;
   align-items: start;
 }
 
 .dashboard-left {
-  width: 782px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
