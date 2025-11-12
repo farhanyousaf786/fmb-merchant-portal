@@ -37,8 +37,17 @@
 
 .auth-form-container {
   width: 100%;
-  max-width: 450px;
+  max-width: 600px;
   animation: fadeInUp 0.8s ease-out;
+}
+
+/* White Card Container for form content */
+.auth-card-content {
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-top: 1rem;
 }
 
 /* Top Right Toggle */
@@ -48,8 +57,8 @@
   margin-bottom: 1rem;
 }
 
-/* Auth Toggle Container - Left positioned */
-.auth-toggle-container {
+/* Auth Toggle Container - Inside card, left positioned */
+.auth-card-content .auth-toggle-container {
   display: flex;
   justify-content: flex-start;
   margin-bottom: 2rem;
@@ -289,12 +298,21 @@
     flex-direction: column;
   }
   
+  .auth-left-section {
+    display: none;
+  }
+  
   .auth-right-section {
-    padding: 40px 20px;
+    flex: 1;
+    padding: 20px 16px;
   }
   
   .auth-form-container {
     max-width: 100%;
+  }
+  
+  .auth-card-content {
+    padding: 30px 20px;
   }
   
   .auth-header h2 {
@@ -305,17 +323,15 @@
     flex-direction: column;
     gap: 0;
   }
-  
-  .form-options {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-  }
 }
 
 @media (max-width: 480px) {
   .auth-right-section {
-    padding: 20px 16px;
+    padding: 16px 12px;
+  }
+  
+  .auth-card-content {
+    padding: 24px 16px;
   }
   
   .auth-header h2 {
@@ -323,12 +339,17 @@
   }
   
   .form-input {
-    padding: 14px 16px;
+    padding: 12px 14px;
     font-size: 0.9rem;
   }
   
   .auth-button {
-    padding: 16px 20px;
+    padding: 14px 20px;
     font-size: 0.9rem;
+  }
+  
+  .toggle-btn {
+    padding: 6px 16px;
+    font-size: 0.85rem;
   }
 }

@@ -87,7 +87,7 @@ const Auth = ({ setUser }) => {
       {/* Right Side - Auth Form */}
       <div className="auth-right-section">
         <div className="auth-form-container">
-          {/* Top Right - Role Toggle */}
+          {/* Top Right - Role Toggle - Outside card */}
           <div className="top-right-toggle">
             <div className="role-toggle">
               <button className="toggle-btn active">Merchant</button>
@@ -95,109 +95,112 @@ const Auth = ({ setUser }) => {
             </div>
           </div>
 
-          {/* Auth Toggle - Left positioned */}
-          <div className="auth-toggle-container">
-            <div className="auth-toggle">
-              <button 
-                className={`toggle-btn ${isSignIn ? 'active' : ''}`}
-                onClick={() => setIsSignIn(true)}
-              >
-                Sign in
-              </button>
-              <button 
-                className={`toggle-btn ${!isSignIn ? 'active' : ''}`}
-                onClick={() => setIsSignIn(false)}
-              >
-                Sign up
-              </button>
-            </div>
-          </div>
-
-          <div className="auth-header">
-            <h2>Welcome Back</h2>
-            <p>Access your orders, invoices, and support in one place.</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="auth-form">
-            {error && <div className="error-message">{error}</div>}
-
-            {!isSignIn && (
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="firstName" className="form-label">First Name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="Enter your first name"
-                    required
-                    disabled={loading}
-                    className="form-input"
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="lastName" className="form-label">Last Name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    placeholder="Enter your last name"
-                    required
-                    disabled={loading}
-                    className="form-input"
-                  />
-                </div>
-              </div>
-            )}
-
-            <div className="form-group">
-              <label htmlFor="email" className="form-label">Email</label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder=""
-                required
-                disabled={loading}
-                className="form-input"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="password" className="form-label">Password</label>
-              <div className="password-input-container">
-                <input
-                  type="password"
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder=""
-                  required
-                  disabled={loading}
-                  className="form-input"
-                  minLength={isSignIn ? undefined : 6}
-                />
-                <button type="button" className="password-toggle">
-                  👁️
+          {/* White Card Container for form content */}
+          <div className="auth-card-content">
+            {/* Auth Toggle - Inside card */}
+            <div className="auth-toggle-container">
+              <div className="auth-toggle">
+                <button 
+                  className={`toggle-btn ${isSignIn ? 'active' : ''}`}
+                  onClick={() => setIsSignIn(true)}
+                >
+                  Sign in
+                </button>
+                <button 
+                  className={`toggle-btn ${!isSignIn ? 'active' : ''}`}
+                  onClick={() => setIsSignIn(false)}
+                >
+                  Sign up
                 </button>
               </div>
             </div>
 
-            <button type="submit" className="auth-button" disabled={loading}>
-              {loading 
-                ? (isSignIn ? 'Signing in...' : 'Creating account...') 
-                : (isSignIn ? 'Sign In' : 'Sign Up')
-              }
-            </button>
-          </form>
+            <div className="auth-header">
+              <h2>Welcome Back</h2>
+              <p>Access your orders, invoices, and support in one place.</p>
+            </div>
 
-          <div className="auth-footer">
-            <p className="trouble-text">
-              Trouble logging in? <a href="#" className="contact-admin">Contact Admin.</a>
-            </p>
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && <div className="error-message">{error}</div>}
+
+              {!isSignIn && (
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="firstName" className="form-label">First Name</label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="Enter your first name"
+                      required
+                      disabled={loading}
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="lastName" className="form-label">Last Name</label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Enter your last name"
+                      required
+                      disabled={loading}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="form-group">
+                <label htmlFor="email" className="form-label">Email</label>
+                <input
+                  type="email"
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder=""
+                  required
+                  disabled={loading}
+                  className="form-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="password" className="form-label">Password</label>
+                <div className="password-input-container">
+                  <input
+                    type="password"
+                    id="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder=""
+                    required
+                    disabled={loading}
+                    className="form-input"
+                    minLength={isSignIn ? undefined : 6}
+                  />
+                  <button type="button" className="password-toggle">
+                    👁️
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="auth-button" disabled={loading}>
+                {loading 
+                  ? (isSignIn ? 'Signing in...' : 'Creating account...') 
+                  : (isSignIn ? 'Sign In' : 'Sign Up')
+                }
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <p className="trouble-text">
+                Trouble logging in? <a href="#" className="contact-admin">Contact Admin.</a>
+              </p>
+            </div>
           </div>
         </div>
       </div>
