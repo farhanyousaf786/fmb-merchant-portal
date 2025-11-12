@@ -22,9 +22,9 @@ const StatCard = ({ title, value, note, tone, iconSrc }) => (
 const StatsRow = () => {
   return (
     <div className="dashboard-stats">
-      <StatCard title="Active orders" value="0 Ongoing" tone="tone-blue" iconSrc="/assets/icons/orders-icon.png" />
-      <StatCard title="To be delivered" value="0 arriving" tone="tone-green" iconSrc="/assets/icons/tracking-icon.png" />
-      <StatCard title="Unpaid invoices" value="$0" tone="tone-yellow" iconSrc="/assets/icons/invoice-icon.png" />
+      <StatCard title="Ongoing Orders" value="0" note="Active orders" tone="tone-blue" iconSrc="/assets/icons/orders-icon.png" />
+      <StatCard title="To be delivered" value="0" note="arriving" tone="tone-green" iconSrc="/assets/icons/tracking-icon.png" />
+      <StatCard title="Unpaid Invoices" value="$0" note="pending payment" tone="tone-yellow" iconSrc="/assets/icons/invoice-icon.png" />
     </div>
   );
 };

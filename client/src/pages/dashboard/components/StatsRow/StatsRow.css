@@ -1,4 +1,4 @@
-.dashboard-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:0;width:782px}
+.dashboard-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0;width:100%}
 .stat-card{background:#fff;border:1px solid #eef2f7;border-radius:16px;padding:22px 22px;display:flex;gap:14px;align-items:center;min-height:164px}
 .stat-card .stat-icon{width:48px;height:48px;border-radius:12px;background:#eef2ff;display:flex;align-items:center;justify-content:center;color:#374151;font-weight:600}
 .stat-card.tone-blue{background:#f1f6ff}

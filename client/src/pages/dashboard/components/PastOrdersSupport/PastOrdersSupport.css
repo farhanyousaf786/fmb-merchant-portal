@@ -1,0 +1,186 @@
+.past-orders-support {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* Past Orders Section */
+.past-orders-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.past-orders-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.orders-table {
+  width: 100%;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1.5fr;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1.5fr;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #f3f4f6;
+  align-items: center;
+  font-size: 14px;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.order-id {
+  font-weight: 600;
+  color: #374151;
+}
+
+.bread-type,
+.quantity,
+.order-date,
+.delivery-date {
+  color: #6b7280;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.repeat-order-btn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rate-btn {
+  background: transparent;
+  color: #f59e0b;
+  border: 1px solid #f59e0b;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.repeat-order-btn:hover {
+  background: #d97706;
+}
+
+.rate-btn:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+/* Support Section */
+.support-section {
+  display: flex;
+  align-items: flex-start;
+}
+
+.support-card {
+  background: #fef3c7;
+  border-radius: 12px;
+  padding: 32px 24px;
+  text-align: center;
+  width: 100%;
+  position: relative;
+}
+
+.support-icon {
+  width: 80px;
+  height: 80px;
+  background: #f59e0b;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+
+.support-icon img {
+  width: 40px;
+  height: 40px;
+  filter: brightness(0) invert(1);
+}
+
+.support-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.contact-info {
+  margin-bottom: 24px;
+}
+
+.contact-info p {
+  margin: 8px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.contact-support-btn {
+  background: transparent;
+  color: #f59e0b;
+  border: 2px solid #f59e0b;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.contact-support-btn:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .past-orders-support {
+    grid-template-columns: 1fr;
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .table-header span,
+  .table-row span {
+    padding: 4px 0;
+  }
+  
+  .action-buttons {
+    justify-content: flex-start;
+  }
+}

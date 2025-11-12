@@ -4,8 +4,8 @@ import './Dashboard.css';
 import WelcomeBar from './components/WelcomeBar/WelcomeBar';
 import FiltersBar from './components/FiltersBar/FiltersBar';
 import StatsRow from './components/StatsRow/StatsRow';
-import PaymentsSnapshots from './components/PaymentsSnapshots/PaymentsSnapshots';
-import RecentOrders from './components/RecentOrders/RecentOrders';
+import CurrentOrderTracker from './components/CurrentOrderTracker/CurrentOrderTracker';
+import PastOrdersSupport from './components/PastOrdersSupport/PastOrdersSupport';
 
 const Dashboard = ({ user, onLogout }) => {
   return (
@@ -21,10 +21,10 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="dashboard-main-grid">
             <div className="dashboard-left">
               <StatsRow />
-              <PaymentsSnapshots />
+              <CurrentOrderTracker />
             </div>
           </div>
-          <RecentOrders />
+          <PastOrdersSupport />
         </div>
       </div>
     </div>
