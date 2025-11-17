@@ -74,39 +74,35 @@ const Sidebar = ({ user, onLogout }) => {
 
   return (
     <div className="sidebar">
-      {/* Header */}
+      {/* Header - Unified UI for all users */}
       <div className="sidebar-header">
-        {!isAdmin && (
-          <div className="merchant-info">
-            <div className="merchant-avatar">
-              <span className="avatar-text">
-                {merchantInfo.businessName[0].toUpperCase()}
-              </span>
-            </div>
-            <div className="merchant-details">
-              <h3 className="merchant-name">
-                {merchantInfo.businessName}
-              </h3>
-              <p className="merchant-id">
-                Merchant ID: {merchantInfo.merchantId}
-              </p>
-            </div>
-            <button className="expand-btn" aria-label="Expand">
-              <span>›</span>
-            </button>
+        <div className="user-info">
+          <div className="user-avatar">
+            <span className="avatar-text">
+              {isAdmin 
+                ? (user?.first_name?.charAt(0).toUpperCase() || 'A')
+                : (user?.business_name?.charAt(0).toUpperCase() || merchantInfo.businessName[0].toUpperCase())
+              }
+            </span>
           </div>
-        )}
-        {isAdmin && (
-          <div className="user-info">
-            <div className="user-avatar">
-              {user?.first_name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div className="user-details">
-              <div className="user-name">{user?.first_name} {user?.last_name}</div>
-              <div className="user-role">{user?.role || 'Role'}</div>
-            </div>
+          <div className="user-details">
+            <h3 className="user-name">
+              {isAdmin 
+                ? `${user?.first_name || 'Admin'} ${user?.last_name || 'User'}`
+                : (user?.business_name || merchantInfo.businessName)
+              }
+            </h3>
+            <p className="user-id">
+              {isAdmin 
+                ? `${user?.role || 'Administrator'}`
+                : `ID: ${user?.id || merchantInfo.merchantId} • ${user?.role || 'Merchant'}`
+              }
+            </p>
           </div>
-        )}
+          <button className="expand-btn" aria-label="Expand">
+            <span>›</span>
+          </button>
+        </div>
       </div>
 
       {/* Navigation Menu */}

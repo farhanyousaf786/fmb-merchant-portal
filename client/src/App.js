@@ -4,6 +4,7 @@ import './App.css';
 
 // Lazy load components for better performance
 const Auth = React.lazy(() => import('./pages/auth/Auth'));
+const Pending = React.lazy(() => import('./pages/pending/Pending'));
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
 const Orders = React.lazy(() => import('./pages/orders/Orders'));
@@ -79,6 +80,7 @@ function App() {
             <Route path="/" element={<Navigate to="/auth" />} />
             <Route path="/auth" element={<Auth setUser={setUser} />} />
             <Route path="/signin" element={<Auth setUser={setUser} />} />
+            <Route path="/pending" element={<Pending />} />
             <Route
               path="/dashboard"
               element={

@@ -17,7 +17,6 @@ const Auth = ({ setUser }) => {
   const [role, setRole] = useState('merchant');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -51,7 +50,8 @@ const Auth = ({ setUser }) => {
 
         const data = await response.json();
         if (data.success) {
-          setSubmitted(true);
+          // Redirect to pending page after successful signup
+          navigate('/pending');
         } else {
           setError(data.error || 'Failed to submit application');
         }
@@ -71,6 +71,11 @@ const Auth = ({ setUser }) => {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
+        // Check if user exists but is inactive
+        if (data.error === 'Account is inactive') {
+          navigate('/pending');
+          return;
+        }
         setError(data.error || 'Invalid email or password');
         setLoading(false);
         return;
@@ -118,39 +123,6 @@ const Auth = ({ setUser }) => {
   };
 
 
-  if (submitted) {
-    return (
-      <div className="auth-container">
-        {/* Left Side - Image (same as main auth) */}
-        <div className="auth-left-section">
-          <img 
-            src="/assets/images/auth-screen-img.png"
-            alt="Bread" 
-            className="auth-background-image"
-            onError={(e) => {
-              console.log('Image failed to load:', e.target.src);
-              e.target.src = 'https://via.placeholder.com/800x600/f8f9fa/333?text=Image+Not+Found';
-            }}
-          />
-        </div>
-
-        {/* Right Side - Pending Message */}
-        <div className="auth-right-section">
-          <div className="auth-form-container">
-            <div className="auth-card-content">
-              <div className="success-icon">ℹ</div>
-              <h2>Application Received</h2>
-              <p>Your account is pending manual approval by FMB.</p>
-              <p>You'll receive an email within 1–2 business days.</p>
-              <button className="auth-button" onClick={() => { setSubmitted(false); setIsSignIn(true); resetForm(); }}>
-                Back to Sign In
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="auth-container">
