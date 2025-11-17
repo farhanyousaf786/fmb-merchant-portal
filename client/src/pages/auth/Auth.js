@@ -8,38 +8,96 @@ const Auth = ({ setUser }) => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [postal, setPostal] = useState('');
+  const [zip, setZip] = useState('');
+  const [role, setRole] = useState('merchant');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    // Bypass authentication for now - go directly to dashboard
     try {
-      // Simulate loading for better UX
-      setTimeout(() => {
-        // Set a dummy token and user for now
-        localStorage.setItem('authToken', 'dummy-token-for-testing');
-        if (setUser) {
-          setUser({ 
-            id: 1, 
-            email: email || 'test@example.com', 
-            role: 'merchant',
-            firstName: 'Test',
-            lastName: 'User',
-            businessName: 'Famous Moms Bakery',
-            merchantId: '007S1260'
-          });
+      if (!isSignIn) {
+        // Handle signup
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/admin/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+            business_name: businessName,
+            email: email,
+            password: password,
+            phone: phone,
+            legal_address: address,
+            country: 'N/A',
+            city: city,
+            postal: postal,
+            zip: zip,
+            role: role,
+            primary_contact_name: `${firstName} ${lastName}`
+          })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setSubmitted(true);
+        } else {
+          setError(data.error || 'Failed to submit application');
         }
-        navigate('/dashboard');
         setLoading(false);
-      }, 1000);
+        return;
+      }
+
+      // Handle signin
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/admin/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Invalid email or password');
+        setLoading(false);
+        return;
+      }
+
+      // Save token and user from backend (AdminUser)
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+      if (setUser && data.user) {
+        setUser({
+          id: data.user.id,
+          email: data.user.email,
+          role: data.user.role,
+          status: data.user.status,
+          firstName: data.user.first_name,
+          lastName: data.user.last_name,
+          businessName: data.user.business_name,
+          userType: data.user.user_type,
+        });
+      }
+
+      navigate('/dashboard');
+      setLoading(false);
     } catch (err) {
+      console.error('Auth error:', err);
       setError('Something went wrong. Please try again.');
-      console.error('Navigation error:', err);
       setLoading(false);
     }
   };
@@ -49,13 +107,50 @@ const Auth = ({ setUser }) => {
     setPassword('');
     setFirstName('');
     setLastName('');
+    setBusinessName('');
+    setPhone('');
+    setAddress('');
+    setCity('');
+    setPostal('');
+    setZip('');
+    setRole('merchant');
     setError('');
   };
 
-  const switchMode = () => {
-    setIsSignIn(!isSignIn);
-    resetForm();
-  };
+
+  if (submitted) {
+    return (
+      <div className="auth-container">
+        {/* Left Side - Image (same as main auth) */}
+        <div className="auth-left-section">
+          <img 
+            src="/assets/images/auth-screen-img.png"
+            alt="Bread" 
+            className="auth-background-image"
+            onError={(e) => {
+              console.log('Image failed to load:', e.target.src);
+              e.target.src = 'https://via.placeholder.com/800x600/f8f9fa/333?text=Image+Not+Found';
+            }}
+          />
+        </div>
+
+        {/* Right Side - Pending Message */}
+        <div className="auth-right-section">
+          <div className="auth-form-container">
+            <div className="auth-card-content">
+              <div className="success-icon">ℹ</div>
+              <h2>Application Received</h2>
+              <p>Your account is pending manual approval by FMB.</p>
+              <p>You'll receive an email within 1–2 business days.</p>
+              <button className="auth-button" onClick={() => { setSubmitted(false); setIsSignIn(true); resetForm(); }}>
+                Back to Sign In
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
@@ -75,17 +170,11 @@ const Auth = ({ setUser }) => {
       {/* Right Side - Auth Form */}
       <div className="auth-right-section">
         <div className="auth-form-container">
-          {/* Top Right - Role Toggle - Outside card */}
-          <div className="top-right-toggle">
-            <div className="role-toggle">
-              <button className="toggle-btn active">Merchant</button>
-              <button className="toggle-btn">Admin</button>
-            </div>
-          </div>
+      
 
           {/* White Card Container for form content */}
           <div className="auth-card-content">
-            {/* Auth Toggle - Inside card */}
+            {/* Auth Toggle */}
             <div className="auth-toggle-container">
               <div className="auth-toggle">
                 <button 
@@ -104,42 +193,145 @@ const Auth = ({ setUser }) => {
             </div>
 
             <div className="auth-header">
-              <h2>Welcome Back</h2>
-              <p>Access your orders, invoices, and support in one place.</p>
+              <h2>{isSignIn ? 'Welcome Back' : 'Apply for Merchant Access'}</h2>
+              <p>{isSignIn ? 'Access your orders, invoices, and support in one place.' : 'Create your profile. Manual approval is required before first login.'}</p>
             </div>
 
             <form onSubmit={handleSubmit} className="auth-form">
               {error && <div className="error-message">{error}</div>}
 
               {!isSignIn && (
-                <div className="form-row">
+                <>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="firstName" className="form-label">First Name *</label>
+                      <input
+                        type="text"
+                        id="firstName"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="Enter your first name"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="lastName" className="form-label">Last Name *</label>
+                      <input
+                        type="text"
+                        id="lastName"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="Enter your last name"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-group">
-                    <label htmlFor="firstName" className="form-label">First Name</label>
+                    <label htmlFor="businessName" className="form-label">Business Name *</label>
                     <input
                       type="text"
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="Enter your first name"
+                      id="businessName"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="Enter your business name"
                       required
                       disabled={loading}
                       className="form-input"
                     />
                   </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="phone" className="form-label">Phone *</label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Phone number"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="city" className="form-label">City *</label>
+                      <input
+                        type="text"
+                        id="city"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="Enter city"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
                   <div className="form-group">
-                    <label htmlFor="lastName" className="form-label">Last Name</label>
-                    <input
-                      type="text"
-                      id="lastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Enter your last name"
+                    <label htmlFor="address" className="form-label">Address *</label>
+                    <textarea
+                      id="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Enter your business address"
                       required
                       disabled={loading}
                       className="form-input"
+                      rows="2"
                     />
                   </div>
-                </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="postal" className="form-label">Postal *</label>
+                      <input
+                        type="text"
+                        id="postal"
+                        value={postal}
+                        onChange={(e) => setPostal(e.target.value)}
+                        placeholder="Postal code"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="zip" className="form-label">Zip *</label>
+                      <input
+                        type="text"
+                        id="zip"
+                        value={zip}
+                        onChange={(e) => setZip(e.target.value)}
+                        placeholder="ZIP code"
+                        required
+                        disabled={loading}
+                        className="form-input"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="role" className="form-label">Role *</label>
+                    <select
+                      id="role"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      required
+                      disabled={loading}
+                      className="form-input"
+                    >
+                      <option value="merchant">Merchant</option>
+                      <option value="staff">Staff</option>
+                    </select>
+                  </div>
+                </>
               )}
 
               <div className="form-group">
@@ -168,7 +360,7 @@ const Auth = ({ setUser }) => {
                     required
                     disabled={loading}
                     className="form-input"
-                    minLength={isSignIn ? undefined : 6}
+                    minLength={!isSignIn ? 6 : undefined}
                   />
                   <button type="button" className="password-toggle">
                     👁️
@@ -178,8 +370,8 @@ const Auth = ({ setUser }) => {
 
               <button type="submit" className="auth-button" disabled={loading}>
                 {loading 
-                  ? (isSignIn ? 'Signing in...' : 'Creating account...') 
-                  : (isSignIn ? 'Sign In' : 'Sign Up')
+                  ? (isSignIn ? 'Signing in...' : 'Submitting Application...') 
+                  : (isSignIn ? 'Sign In' : 'Submit Application')
                 }
               </button>
             </form>

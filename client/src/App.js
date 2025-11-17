@@ -1,10 +1,9 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 // Lazy load components for better performance
 const Auth = React.lazy(() => import('./pages/auth/Auth'));
-const SignUp = React.lazy(() => import('./pages/SignUp/SignUp'));
 const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
 const Orders = React.lazy(() => import('./pages/orders/Orders'));
@@ -39,17 +38,14 @@ function ProtectedRoute({ children }) {
 function App() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    // Check if user is logged in and fetch user data from server
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      fetchUserData(token);
-    }
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('authToken');
+    setUser(null);
   }, []);
 
-  const fetchUserData = async (token) => {
+  const fetchUserData = useCallback(async (token) => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/me`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -65,22 +61,24 @@ function App() {
       console.error('Error fetching user data:', error);
       handleLogout();
     }
-  };
+  }, [handleLogout]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    setUser(null);
-  };
+  useEffect(() => {
+    // Check if user is logged in and fetch user data from server
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      fetchUserData(token);
+    }
+  }, [fetchUserData]);
 
   return (
     <Router>
       <div className="App">
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<Navigate to="/auth" />} />
             <Route path="/auth" element={<Auth setUser={setUser} />} />
             <Route path="/signin" element={<Auth setUser={setUser} />} />
-            <Route path="/signup" element={<Auth setUser={setUser} />} />
             <Route
               path="/dashboard"
               element={
