@@ -41,34 +41,34 @@ const Sidebar = ({ user, onLogout }) => {
       path: '/catalogs'
     },
     {
-      id: 'checkouts',
-      label: 'Checkouts',
-      icon: '/assets/icons/checkout-icon.png',
-      path: '/checkouts'
-    },
-    {
-      id: 'invoices',
-      label: 'Invoice/Payments',
-      icon: '/assets/icons/invoice-icon.png',
-      path: '/invoices'
-    },
-    {
       id: 'trackings',
       label: 'Trackings',
       icon: '/assets/icons/tracking-icon.png',
       path: '/trackings'
     },
     {
-      id: 'support',
-      label: 'Support/Issues',
+      id: 'reviews',
+      label: 'Reviews',
       icon: '/assets/icons/support-icon.png',
       path: '/support'
+    },
+    {
+      id: 'support',
+      label: 'Support',
+      icon: '/assets/icons/support-icon.png',
+      path: '/support-page'
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: '/assets/icons/setting-icon.png',
       path: '/settings'
+    },
+    {
+      id: 'logout',
+      label: 'Log out',
+      icon: '/assets/icons/logut-icon.png',
+      isLogout: true
     }
   ];
 
@@ -112,61 +112,70 @@ const Sidebar = ({ user, onLogout }) => {
       {/* Navigation Menu */}
       <nav className="sidebar-nav">
         <ul className="nav-list">
-          {menuItems.map((item) => (
-            <li key={item.id} className="nav-item">
-              <Link
-                to={item.path}
-                className={`nav-link ${
-                  location.pathname === item.path ? 'active' : ''
-                }`}
-              >
-                <span className="nav-icon">
-                  <img 
-                    src={item.icon} 
-                    alt={item.label} 
-                    className="nav-icon-img"
-                    onError={(e) => {
-                      console.log('Icon failed to load:', item.icon);
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'inline';
-                    }}
-                  />
-                  <span className="nav-icon-fallback" style={{display: 'none'}}>
-                    {item.id === 'dashboard' ? '📊' : 
-                     item.id === 'users' ? '👥' :
-                     item.id === 'orders' ? '🛒' : 
-                     item.id === 'catalogs' ? '📋' : 
-                     item.id === 'checkouts' ? '💳' : 
-                     item.id === 'invoices' ? '🧾' : 
-                     item.id === 'trackings' ? '📦' : 
-                     item.id === 'support' ? '❓' : 
-                     item.id === 'settings' ? '⚙️' : '📄'}
+          {menuItems.map((item) => {
+            if (item.isLogout) {
+              return (
+                <li key={item.id} className="nav-item">
+                  <button
+                    className="nav-link logout-nav-btn"
+                    onClick={handleLogout}
+                  >
+                    <span className="nav-icon">
+                      <img 
+                        src={item.icon} 
+                        alt={item.label} 
+                        className="nav-icon-img"
+                        onError={(e) => {
+                          console.log('Icon failed to load:', item.icon);
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'inline';
+                        }}
+                      />
+                      <span className="nav-icon-fallback" style={{display: 'none'}}>🚪</span>
+                    </span>
+                    <span className="nav-label">{item.label}</span>
+                  </button>
+                </li>
+              );
+            }
+            
+            return (
+              <li key={item.id} className="nav-item">
+                <Link
+                  to={item.path}
+                  className={`nav-link ${
+                    location.pathname === item.path ? 'active' : ''
+                  }`}
+                >
+                  <span className="nav-icon">
+                    <img 
+                      src={item.icon} 
+                      alt={item.label} 
+                      className="nav-icon-img"
+                      onError={(e) => {
+                        console.log('Icon failed to load:', item.icon);
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'inline';
+                      }}
+                    />
+                    <span className="nav-icon-fallback" style={{display: 'none'}}>
+                      {item.id === 'dashboard' ? '📊' : 
+                       item.id === 'users' ? '👥' :
+                       item.id === 'orders' ? '🛒' : 
+                       item.id === 'catalogs' ? '📋' : 
+                       item.id === 'checkouts' ? '💳' : 
+                       item.id === 'invoices' ? '🧾' : 
+                       item.id === 'trackings' ? '📦' : 
+                       item.id === 'support' ? '❓' : 
+                       item.id === 'settings' ? '⚙️' : '📄'}
+                    </span>
                   </span>
-                </span>
-                <span className="nav-label">{item.label}</span>
-              </Link>
-            </li>
-          ))}
+                  <span className="nav-label">{item.label}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
-
-        {/* Logout */}
-        <div className="sidebar-footer">
-          <button className="logout-btn" onClick={handleLogout}>
-            <span className="nav-icon">
-              <img 
-                src="/assets/icons/logut-icon.png" 
-                alt="Log out" 
-                className="nav-icon-img"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'inline';
-                }}
-              />
-              <span className="nav-icon-fallback" style={{display: 'none'}}>🚪</span>
-            </span>
-            <span className="nav-label">Log out</span>
-          </button>
-        </div>
       </nav>
 
       {/* Promotional Banner */}

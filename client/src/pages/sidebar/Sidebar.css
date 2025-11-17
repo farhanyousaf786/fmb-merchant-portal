@@ -209,6 +209,38 @@
   flex: 1;
 }
 
+.logout-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  color: #ef4444;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border-radius: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.logout-nav-btn:hover {
+  background-color: #f9fafb;
+  color: #dc2626;
+}
+
+.logout-nav-btn .nav-icon-img {
+  filter: brightness(0) saturate(100%) invert(14%) sepia(95%) saturate(4495%) hue-rotate(353deg) brightness(96%) contrast(112%);
+}
+
+.logout-nav-btn:hover .nav-icon-img {
+  opacity: 1;
+}
+
 /* Footer */
 .sidebar-footer {
   padding: 0 20px 20px;
