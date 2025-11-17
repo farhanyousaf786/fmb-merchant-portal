@@ -165,8 +165,18 @@ const Auth = ({ setUser }) => {
             </div>
 
             <div className="auth-header">
-              <h2>{isSignIn ? 'Welcome Back' : 'Apply for Merchant Access'}</h2>
-              <p>{isSignIn ? 'Access your orders, invoices, and support in one place.' : 'Create your profile. Manual approval is required before first login.'}</p>
+              <h2>
+                {isSignIn 
+                  ? 'Welcome Back!' 
+                  : 'Join FMB Merchant Portal'
+                }
+              </h2>
+              <p>
+                {isSignIn 
+                  ? 'Sign in to access your dashboard, manage orders, and grow your business.' 
+                  : 'Apply for merchant access and start selling with FMB. Manual approval required.'
+                }
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="auth-form">

@@ -708,3 +708,41 @@
     width: 100%;
   }
 }
+
+/* Profile Header with Edit Button */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.profile-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.edit-profile-btn {
+  padding: 10px 24px;
+  background: #DEAD25;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(222, 173, 37, 0.2);
+}
+
+.edit-profile-btn:hover {
+  background: #c99a20;
+  box-shadow: 0 4px 12px rgba(222, 173, 37, 0.3);
+  transform: translateY(-1px);
+}
+
+.edit-profile-btn:active {
+  transform: translateY(0);
+}

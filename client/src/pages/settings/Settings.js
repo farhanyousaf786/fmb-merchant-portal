@@ -1,35 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../sidebar/Sidebar';
+import EditDialog from './components/EditDialog/EditDialog';
+import Toast from '../../components/Toast/Toast';
 import './Settings.css';
 
 const Settings = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    country: '',
+    address: '',
+    role: ''
+  });
   const [formData, setFormData] = useState({
-    firstName: 'Hassan',
-    lastName: 'Bashar',
-    email: 'hassanbashar@gmail.com',
-    phone: '08054679108',
-    country: 'Saudi Arabia',
-    address: '098 Siwak Bake and Food',
-    role: 'Merchant'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    country: '',
+    address: '',
+    role: ''
   });
 
-  const handleInputChange = (e) => {
+  // Populate form with user data when component mounts or user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        firstName: user.first_name || '',
+        lastName: user.last_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        country: user.country || '',
+        address: user.legal_address || user.address || '',
+        role: user.role || ''
+      });
+    }
+  }, [user]);
+
+  // Generate user initials for avatar
+  const getUserInitials = () => {
+    const firstName = formData.firstName || user?.first_name || '';
+    const lastName = formData.lastName || user?.last_name || '';
+    const firstInitial = firstName.charAt(0).toUpperCase();
+    const lastInitial = lastName.charAt(0).toUpperCase();
+    return firstInitial + lastInitial || 'U';
+  };
+
+  // Open edit dialog and populate with current data
+  const handleEditClick = () => {
+    setEditFormData({ ...formData });
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle input changes in edit dialog
+  const handleEditInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setEditFormData(prev => ({
       ...prev,
       [name]: value
     }));
+    console.log(`Updated ${name} to ${value}`); // Updated console logging
   };
 
-  const handleSave = () => {
-    console.log('Saving profile data:', formData);
-    // Handle save logic here
+  // Save changes from dialog
+  const handleSaveChanges = async () => {
+    try {
+      // Convert camelCase to snake_case
+      const snakeCaseFormData = Object.keys(editFormData).reduce((acc, key) => {
+        const snakeCaseKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+        if (snakeCaseKey === 'address') {
+          acc['legal_address'] = editFormData[key];
+        } else {
+          acc[snakeCaseKey] = editFormData[key];
+        }
+        return acc;
+      }, {});
+
+      // Update local state
+      setFormData({ ...editFormData });
+      console.log('Updated profile data:', editFormData); // Updated console logging
+
+      // Send to backend API
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(snakeCaseFormData)
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setToast({ type: 'success', message: 'Changes saved successfully' });
+      } else {
+        setToast({ type: 'error', message: 'Failed to save changes' });
+      }
+
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setToast({ type: 'error', message: 'Failed to save changes' });
+    }
   };
 
-  const handleCancel = () => {
-    // Reset form or navigate away
-    console.log('Cancelled changes');
+  // Close dialog without saving
+  const handleCancelEdit = () => {
+    setIsEditDialogOpen(false);
   };
 
   return (
@@ -43,6 +125,7 @@ const Settings = ({ user, onLogout }) => {
               <input 
                 type="text" 
                 placeholder="Search by Invoice ID or Customer Name"
+                value=""
                 className="search-input"
               />
             </div>
@@ -104,14 +187,19 @@ const Settings = ({ user, onLogout }) => {
               <div className="settings-main-content">
                 {activeTab === 'profile' && (
                   <div className="profile-section">
-                    <h2>Profile info</h2>
+                    <div className="profile-header">
+                      <h2>Profile info</h2>
+                      <button className="edit-profile-btn" onClick={handleEditClick}>
+                        Edit
+                      </button>
+                    </div>
                     
                     <div className="avatar-section">
                       <label>Avatar</label>
                       <div className="avatar-container">
                         <div className="avatar-image">
                           <img 
-                            src="https://via.placeholder.com/80x80/3B82F6/FFFFFF?text=HB" 
+                            src={`https://via.placeholder.com/80x80/DEAD25/FFFFFF?text=${getUserInitials()}`}
                             alt="Profile Avatar"
                             onError={(e) => {
                               e.target.style.display = 'none';
@@ -122,14 +210,8 @@ const Settings = ({ user, onLogout }) => {
                             className="avatar-fallback"
                             style={{ display: 'none' }}
                           >
-                            HB
+                            {getUserInitials()}
                           </div>
-                          <button className="avatar-edit-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 20h9" stroke="white" strokeWidth="2"/>
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="white" strokeWidth="2"/>
-                            </svg>
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -137,40 +219,24 @@ const Settings = ({ user, onLogout }) => {
                     <div className="form-grid">
                       <div className="form-group">
                         <label>Full Name</label>
-                        <div className="input-with-edit">
-                          <input
-                            type="text"
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            className="form-input"
-                          />
-                          <button className="edit-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 20h9" stroke="#F59E0B" strokeWidth="2"/>
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#F59E0B" strokeWidth="2"/>
-                            </svg>
-                          </button>
-                        </div>
+                        <input
+                          type="text"
+                          name="firstName"
+                          value={formData.firstName}
+                          readOnly
+                          className="form-input"
+                        />
                       </div>
 
                       <div className="form-group">
                         <label>Last Name</label>
-                        <div className="input-with-edit">
-                          <input
-                            type="text"
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            className="form-input"
-                          />
-                          <button className="edit-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 20h9" stroke="#F59E0B" strokeWidth="2"/>
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#F59E0B" strokeWidth="2"/>
-                            </svg>
-                          </button>
-                        </div>
+                        <input
+                          type="text"
+                          name="lastName"
+                          value={formData.lastName}
+                          readOnly
+                          className="form-input"
+                        />
                       </div>
 
                       <div className="form-group full-width">
@@ -180,7 +246,7 @@ const Settings = ({ user, onLogout }) => {
                             type="email"
                             name="email"
                             value={formData.email}
-                            onChange={handleInputChange}
+                            readOnly
                             className="form-input"
                           />
                           <span className="verified-badge">Verified</span>
@@ -189,21 +255,13 @@ const Settings = ({ user, onLogout }) => {
 
                       <div className="form-group">
                         <label>Phone Number</label>
-                        <div className="input-with-edit">
-                          <input
-                            type="text"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="form-input"
-                          />
-                          <button className="edit-btn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M12 20h9" stroke="#F59E0B" strokeWidth="2"/>
-                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" stroke="#F59E0B" strokeWidth="2"/>
-                            </svg>
-                          </button>
-                        </div>
+                        <input
+                          type="text"
+                          name="phone"
+                          value={formData.phone}
+                          readOnly
+                          className="form-input"
+                        />
                       </div>
 
                       <div className="form-group">
@@ -223,7 +281,7 @@ const Settings = ({ user, onLogout }) => {
                           type="text"
                           name="country"
                           value={formData.country}
-                          onChange={handleInputChange}
+                          readOnly
                           className="form-input"
                         />
                       </div>
@@ -234,19 +292,10 @@ const Settings = ({ user, onLogout }) => {
                           type="text"
                           name="address"
                           value={formData.address}
-                          onChange={handleInputChange}
+                          readOnly
                           className="form-input"
                         />
                       </div>
-                    </div>
-
-                    <div className="form-actions">
-                      <button className="cancel-btn" onClick={handleCancel}>
-                        Cancel
-                      </button>
-                      <button className="save-btn" onClick={handleSave}>
-                        Save changes
-                      </button>
                     </div>
                   </div>
                 )}
@@ -262,6 +311,25 @@ const Settings = ({ user, onLogout }) => {
           </div>
         </div>
       </div>
+
+      {/* Edit Dialog Component */}
+      <EditDialog
+        isOpen={isEditDialogOpen}
+        editFormData={editFormData}
+        onInputChange={handleEditInputChange}
+        onSave={handleSaveChanges}
+        onCancel={handleCancelEdit}
+      />
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          duration={3000}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 };
