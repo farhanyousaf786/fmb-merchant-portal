@@ -91,7 +91,7 @@ router.put('/update', auth, async (req, res) => {
   console.log('Update user profile request received');
   try {
     console.log('Received profile update request from user:', req.user.userId);
-    const { first_name, last_name, email, phone, country, legal_address } = req.body;
+    const { first_name, last_name, email, phone, country, legal_address, avatar_url } = req.body;
     const userId = req.user.userId;
 
     console.log('Update data:', req.body);
@@ -107,8 +107,8 @@ router.put('/update', auth, async (req, res) => {
     const pool = await getPool();
 
     const [result] = await pool.query(
-      `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, country = ?, legal_address = ? WHERE id = ?`,
-      [first_name, last_name, email, phone || null, country || null, legal_address || null, userId]
+      `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, country = ?, legal_address = ?, avatar_url = ? WHERE id = ?`,
+      [first_name, last_name, email, phone || null, country || null, legal_address || null, avatar_url || null, userId]
     );
 
     console.log('Profile update query result:', result);

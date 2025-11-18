@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './EditDialog.css';
 
 const EditDialog = ({ 
@@ -6,14 +6,61 @@ const EditDialog = ({
   editFormData, 
   onInputChange, 
   onSave, 
-  onCancel 
+  onCancel,
+  onAvatarSelect
 }) => {
+  const [avatarPreview, setAvatarPreview] = useState(null);
+
   if (!isOpen) return null;
 
   const getAvatarInitials = () => {
     const firstName = editFormData.firstName?.charAt(0).toUpperCase() || 'U';
     const lastName = editFormData.lastName?.charAt(0).toUpperCase() || '';
     return firstName + lastName;
+  };
+
+  const handleAvatarClick = () => {
+    console.log('🖼️ Avatar edit button clicked');
+    const input = document.getElementById('avatar-file-input');
+    console.log('File input element:', input);
+    if (input) {
+      input.click();
+    } else {
+      console.error('❌ File input element not found');
+    }
+  };
+
+  const handleAvatarFileChange = (e) => {
+    console.log('📁 File change event triggered');
+    const file = e.target.files?.[0];
+    console.log('Selected file:', file);
+    
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size must be less than 5MB');
+      return;
+    }
+
+    console.log('✅ File validation passed, creating preview...');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      console.log('📷 Preview created');
+      setAvatarPreview(event.target.result);
+      if (onAvatarSelect) {
+        console.log('📤 Calling onAvatarSelect callback');
+        onAvatarSelect(file, event.target.result);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -30,23 +77,40 @@ const EditDialog = ({
             <label>Avatar</label>
             <div className="dialog-avatar-container">
               <div className="dialog-avatar-image">
-                <img 
-                  src={`https://via.placeholder.com/100x100/DEAD25/FFFFFF?text=${getAvatarInitials()}`}
-                  alt="Profile Avatar"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
+                {avatarPreview ? (
+                  <>
+                    {console.log('📷 Showing new avatar preview in dialog')}
+                    <img 
+                      src={avatarPreview}
+                      alt="Profile Avatar"
+                    />
+                  </>
+                ) : (
+                  <img 
+                    src={`https://via.placeholder.com/100x100/DEAD25/FFFFFF?text=${getAvatarInitials()}`}
+                    alt="Profile Avatar"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
+                  />
+                )}
                 <div 
                   className="dialog-avatar-fallback"
-                  style={{ display: 'none' }}
+                  style={{ display: avatarPreview ? 'none' : 'flex' }}
                 >
                   {getAvatarInitials()}
                 </div>
-                <button className="dialog-avatar-edit-btn" title="Edit avatar">
+                <button className="dialog-avatar-edit-btn" title="Edit avatar" onClick={handleAvatarClick}>
                   ✎
                 </button>
+                <input 
+                  type="file" 
+                  id="avatar-file-input" 
+                  accept="image/*"
+                  style={{ display: 'none' }} 
+                  onChange={handleAvatarFileChange} 
+                />
               </div>
             </div>
           </div>

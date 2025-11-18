@@ -22,6 +22,7 @@ export async function setupDatabase() {
       city VARCHAR(100) NOT NULL,
       postal VARCHAR(20),
       zip VARCHAR(20),
+      avatar_url VARCHAR(500),
       role ENUM('admin','staff','merchant') NOT NULL DEFAULT 'merchant',
       status ENUM('active','inactive') NOT NULL DEFAULT 'inactive',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -37,7 +38,7 @@ export async function setupDatabase() {
   if (adminRows.length === 0) {
     const hash = await bcrypt.hash(ADMIN_PASS, 10);
     await pool.query(
-      'INSERT INTO users (business_name, primary_contact_name, first_name, last_name, email, password, phone, legal_address, country, city, postal, zip, role, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      'INSERT INTO users (business_name, primary_contact_name, first_name, last_name, email, password, phone, legal_address, country, city, postal, zip, avatar_url, role, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [
         'FMB Merchant Portal',
         'System Admin',
@@ -51,6 +52,7 @@ export async function setupDatabase() {
         'N/A',
         null,
         null,
+        null, // Fix seeding to include null for avatar_url field
         'admin',
         'active'
       ]

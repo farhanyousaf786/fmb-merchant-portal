@@ -15,6 +15,7 @@ class AdminUser {
     this.city = data.city;
     this.postal = data.postal;
     this.zip = data.zip;
+    this.avatar_url = data.avatar_url;
     this.role = data.role;
     this.status = data.status;
     this.created_at = data.created_at;
@@ -34,7 +35,7 @@ class AdminUser {
   static async findById(id) {
     const pool = await getPool();
     const [rows] = await pool.query(
-      'SELECT id, business_name, primary_contact_name, first_name, last_name, email, phone, legal_address, country, city, postal, zip, role, status, created_at FROM users WHERE id = ? LIMIT 1', 
+      'SELECT id, business_name, primary_contact_name, first_name, last_name, email, phone, legal_address, country, city, postal, zip, avatar_url, role, status, created_at FROM users WHERE id = ? LIMIT 1', 
       [id]
     );
     return rows.length > 0 ? new AdminUser(rows[0]) : null;
@@ -124,6 +125,7 @@ class AdminUser {
       city: this.city,
       postal: this.postal,
       zip: this.zip,
+      avatar_url: this.avatar_url,
       role: this.role,
       status: this.status,
       user_type: 'admin',

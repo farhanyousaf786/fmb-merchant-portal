@@ -8,6 +8,8 @@ const Settings = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [editFormData, setEditFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,12 +26,15 @@ const Settings = ({ user, onLogout }) => {
     phone: '',
     country: '',
     address: '',
-    role: ''
+    role: '',
+    avatar_url: ''
   });
 
   // Populate form with user data when component mounts or user changes
   useEffect(() => {
     if (user) {
+      console.log('👤 User data received:', user);
+      console.log('🖼️ Avatar URL from user:', user.avatar_url);
       setFormData({
         firstName: user.first_name || '',
         lastName: user.last_name || '',
@@ -37,7 +42,8 @@ const Settings = ({ user, onLogout }) => {
         phone: user.phone || '',
         country: user.country || '',
         address: user.legal_address || user.address || '',
-        role: user.role || ''
+        role: user.role || '',
+        avatar_url: user.avatar_url || ''
       });
     }
   }, [user]);
@@ -70,6 +76,34 @@ const Settings = ({ user, onLogout }) => {
   // Save changes from dialog
   const handleSaveChanges = async () => {
     try {
+      let avatarUrl = null;
+
+      // Upload avatar if selected
+      if (selectedAvatarFile) {
+        console.log('📤 Uploading avatar...');
+        const formData = new FormData();
+        formData.append('avatar', selectedAvatarFile);
+
+        const uploadResponse = await fetch(`${process.env.REACT_APP_API_URL}/media/upload`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+          },
+          body: formData
+        });
+
+        const uploadData = await uploadResponse.json();
+        console.log('Upload response:', uploadData);
+
+        if (uploadResponse.ok && uploadData.success) {
+          avatarUrl = uploadData.url;
+          console.log('✅ Avatar uploaded:', avatarUrl);
+        } else {
+          setToast({ type: 'error', message: 'Failed to upload avatar' });
+          return;
+        }
+      }
+
       // Convert camelCase to snake_case
       const snakeCaseFormData = Object.keys(editFormData).reduce((acc, key) => {
         const snakeCaseKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
@@ -81,9 +115,12 @@ const Settings = ({ user, onLogout }) => {
         return acc;
       }, {});
 
-      // Update local state
-      setFormData({ ...editFormData });
-      console.log('Updated profile data:', editFormData); // Updated console logging
+      // Add avatar URL if uploaded
+      if (avatarUrl) {
+        snakeCaseFormData.avatar_url = avatarUrl;
+      }
+
+      console.log('📝 Sending to backend:', snakeCaseFormData);
 
       // Send to backend API
       const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update`, {
@@ -95,23 +132,40 @@ const Settings = ({ user, onLogout }) => {
         body: JSON.stringify(snakeCaseFormData)
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
-      if (data.success) {
-        setToast({ type: 'success', message: 'Changes saved successfully' });
-      } else {
-        setToast({ type: 'error', message: 'Failed to save changes' });
-      }
+      console.log('Response data:', data);
 
-      setIsEditDialogOpen(false);
+      if (response.ok && data.success) {
+        // Update local state with new data
+        setFormData({ ...editFormData });
+        setIsEditDialogOpen(false);
+        setSelectedAvatarFile(null);
+        setAvatarPreview(null);
+        setToast({ type: 'success', message: '✅ Profile updated successfully!' });
+        console.log('✅ Profile saved successfully');
+      } else {
+        setToast({ type: 'error', message: data.error || 'Failed to save changes' });
+        console.error('❌ Save failed:', data.error);
+      }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      setToast({ type: 'error', message: 'Failed to save changes' });
+      console.error('❌ Error saving profile:', error);
+      setToast({ type: 'error', message: 'Error saving profile. Please try again.' });
     }
+  };
+
+  // Handle avatar selection from dialog
+  const handleAvatarSelect = (file, preview) => {
+    setSelectedAvatarFile(file);
+    setAvatarPreview(preview);
+    console.log('📷 Avatar selected:', file.name);
   };
 
   // Close dialog without saving
   const handleCancelEdit = () => {
     setIsEditDialogOpen(false);
+    setSelectedAvatarFile(null);
+    setAvatarPreview(null);
   };
 
   return (
@@ -195,17 +249,35 @@ const Settings = ({ user, onLogout }) => {
                     </div>
                     
                     <div className="avatar-section">
-                      <label>Avatar</label>
                       <div className="avatar-container">
                         <div className="avatar-image">
-                          <img 
-                            src={`https://via.placeholder.com/80x80/DEAD25/FFFFFF?text=${getUserInitials()}`}
-                            alt="Profile Avatar"
-                            onError={(e) => {
-                              e.target.style.display = 'none';
-                              e.target.nextSibling.style.display = 'flex';
-                            }}
-                          />
+                          {formData.avatar_url ? (
+                            <>
+                              {console.log('✅ Showing uploaded avatar:', formData.avatar_url)}
+                              {console.log('🌐 Full avatar URL:', `http://localhost:4000${formData.avatar_url}`)}
+                              <img 
+                                src={`http://localhost:4000${formData.avatar_url}`}
+                                alt="Profile Avatar"
+                                onError={(e) => {
+                                  console.error('❌ Avatar image failed to load from:', e.target.src);
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              {console.log('ℹ️ No avatar URL, showing initials')}
+                              <img 
+                                src={`https://via.placeholder.com/80x80/DEAD25/FFFFFF?text=${getUserInitials()}`}
+                                alt="Profile Avatar"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
+                              />
+                            </>
+                          )}
                           <div 
                             className="avatar-fallback"
                             style={{ display: 'none' }}
@@ -319,6 +391,7 @@ const Settings = ({ user, onLogout }) => {
         onInputChange={handleEditInputChange}
         onSave={handleSaveChanges}
         onCancel={handleCancelEdit}
+        onAvatarSelect={handleAvatarSelect}
       />
 
       {/* Toast Notification */}
