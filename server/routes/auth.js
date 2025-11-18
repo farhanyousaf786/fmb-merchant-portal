@@ -127,4 +127,57 @@ router.put('/update', auth, async (req, res) => {
   }
 });
 
+// Get all users (admin only)
+router.get('/all-users', auth, async (req, res) => {
+  console.log('📋 Get all users request received');
+  try {
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+
+    const [rows] = await pool.query(
+      'SELECT id, business_name, primary_contact_name, first_name, last_name, email, phone, legal_address, country, city, postal, zip, avatar_url, role, status, created_at FROM users ORDER BY created_at DESC'
+    );
+
+    console.log('✅ Users retrieved:', rows.length);
+    res.json({ success: true, users: rows });
+  } catch (err) {
+    console.error('❌ Get all users error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch users' });
+  }
+});
+
+// Update user status (admin only)
+router.put('/update-user-status', auth, async (req, res) => {
+  console.log('🔄 Update user status request received');
+  try {
+    const { userId, status } = req.body;
+
+    if (!userId || !status) {
+      return res.status(400).json({ success: false, error: 'Missing userId or status' });
+    }
+
+    if (!['active', 'inactive'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+
+    const [result] = await pool.query(
+      'UPDATE users SET status = ? WHERE id = ?',
+      [status, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    console.log(`✅ User ${userId} status updated to ${status}`);
+    res.json({ success: true, message: 'User status updated successfully' });
+  } catch (err) {
+    console.error('❌ Update user status error:', err);
+    res.status(500).json({ success: false, error: 'Failed to update user status' });
+  }
+});
+
 export default router;

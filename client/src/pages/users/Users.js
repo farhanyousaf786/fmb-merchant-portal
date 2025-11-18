@@ -6,11 +6,15 @@ function Users({ user, onLogout }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    last_name: '',
     email: '',
     password: '',
-    role: 'merchant'
+    role: 'merchant',
+    status: 'active'
   });
 
   useEffect(() => {
@@ -19,21 +23,54 @@ function Users({ user, onLogout }) {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/all-users`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
       const data = await response.json();
       if (data.success) {
-        setUsers(data.users);
+        setUsers(data.users || []);
+        console.log('✅ Users fetched:', data.users);
+      } else {
+        console.error('❌ Failed to fetch users:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('❌ Error fetching users:', error);
     } finally {
       setLoading(false);
     }
   };
+
+  const handleChangeStatus = async (userId, newStatus) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update-user-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ userId, status: newStatus })
+      });
+      const data = await response.json();
+      if (data.success) {
+        console.log('✅ User status updated');
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to update user status');
+      }
+    } catch (error) {
+      console.error('❌ Error updating user status:', error);
+      alert('Failed to update user status');
+    }
+  };
+
+  // Filter users based on selected filters
+  const filteredUsers = users.filter(u => {
+    const statusMatch = statusFilter === 'all' || u.status === statusFilter;
+    const roleMatch = roleFilter === 'all' || u.role === roleFilter;
+    return statusMatch && roleMatch;
+  });
 
   const handleAddUser = async (e) => {
     e.preventDefault();
@@ -91,6 +128,30 @@ function Users({ user, onLogout }) {
           </button>
         </div>
 
+        {/* Filters */}
+        <div className="users-filters">
+          <div className="filter-group">
+            <label>Status:</label>
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div className="filter-group">
+            <label>Role:</label>
+            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+              <option value="all">All Roles</option>
+              <option value="admin">Admin</option>
+              <option value="merchant">Merchant</option>
+              <option value="staff">Staff</option>
+            </select>
+          </div>
+          <div className="filter-info">
+            Showing {filteredUsers.length} of {users.length} users
+          </div>
+        </div>
+
         {loading ? (
           <div className="loading">Loading users...</div>
         ) : (
@@ -102,33 +163,51 @@ function Users({ user, onLogout }) {
                   <th>Name</th>
                   <th>Email</th>
                   <th>Role</th>
+                  <th>Status</th>
                   <th>Created At</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.id}</td>
-                    <td>{u.name}</td>
-                    <td>{u.email}</td>
-                    <td>
-                      <span className={`role-badge ${u.role}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                    <td>
-                      <button 
-                        className="delete-btn"
-                        onClick={() => handleDeleteUser(u.id)}
-                        disabled={u.id === user?.id}
-                      >
-                        Delete
-                      </button>
-                    </td>
+                {filteredUsers.length > 0 ? (
+                  filteredUsers.map((u) => (
+                    <tr key={u.id}>
+                      <td>{u.id}</td>
+                      <td>{u.first_name} {u.last_name}</td>
+                      <td>{u.email}</td>
+                      <td>
+                        <span className={`role-badge ${u.role}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td>
+                        <select 
+                          className={`status-select ${u.status}`}
+                          value={u.status}
+                          onChange={(e) => handleChangeStatus(u.id, e.target.value)}
+                          disabled={u.id === user?.id}
+                        >
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </td>
+                      <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                      <td>
+                        <button 
+                          className="delete-btn"
+                          onClick={() => handleDeleteUser(u.id)}
+                          disabled={u.id === user?.id}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-users">No users found</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

@@ -59,6 +59,13 @@ const Sidebar = ({ user, onLogout }) => {
       path: '/support-page'
     },
     {
+      id: 'users',
+      label: 'Users Management',
+      icon: '/assets/icons/support-icon.png',
+      path: '/users',
+      adminOnly: true
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: '/assets/icons/setting-icon.png',
@@ -109,6 +116,11 @@ const Sidebar = ({ user, onLogout }) => {
       <nav className="sidebar-nav">
         <ul className="nav-list">
           {menuItems.map((item) => {
+            // Skip admin-only items if user is not admin
+            if (item.adminOnly && !isAdmin) {
+              return null;
+            }
+
             if (item.isLogout) {
               return (
                 <li key={item.id} className="nav-item">
