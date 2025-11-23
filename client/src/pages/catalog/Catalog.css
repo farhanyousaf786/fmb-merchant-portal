@@ -35,8 +35,8 @@
 
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .product-card {
@@ -45,6 +45,9 @@
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  min-height: 430px; /* keep all cards same visual height */
 }
 
 .product-card:hover {
@@ -67,6 +70,9 @@
 
 .product-info {
   padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .product-header {
@@ -214,6 +220,7 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+  margin-top: auto; /* push button to bottom so all cards align */
 }
 
 .add-to-order-btn:hover {

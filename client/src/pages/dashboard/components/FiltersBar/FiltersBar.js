@@ -1,7 +1,7 @@
 import React from 'react';
 import './FiltersBar.css';
 
-const FiltersBar = () => {
+const FiltersBar = ({ primaryAction }) => {
   return (
     <div className="filters-bar">
       <div className="filters-left">
@@ -9,7 +9,13 @@ const FiltersBar = () => {
         <button className="filter-btn">Filter by ▾</button>
       </div>
       <div className="filters-right">
-        <button className="primary-btn">New Order</button>
+        {primaryAction ? (
+          <button className="primary-btn" onClick={primaryAction.onClick}>
+            {primaryAction.label}
+          </button>
+        ) : (
+          <button className="primary-btn">New Order</button>
+        )}
       </div>
     </div>
   );

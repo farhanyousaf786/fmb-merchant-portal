@@ -19,6 +19,104 @@
   overflow-x: hidden;
 }
 
+.orders-table-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px 28px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.orders-table thead {
+  background: #f9fafb;
+}
+
+.orders-table th,
+.orders-table td {
+  padding: 14px 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.orders-table th {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.orders-table tbody tr:nth-child(even) {
+  background: #fdfdfd;
+}
+
+.orders-table tbody tr:hover {
+  background: #f3f4f6;
+}
+
+.muted {
+  color: #9ca3af;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-submitted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-draft {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.orders-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.outline-pill-btn,
+.primary-pill-btn {
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.outline-pill-btn {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #374151;
+}
+
+.outline-pill-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary-pill-btn {
+  background: #DEAD25;
+  color: #ffffff;
+}
+
+.orders-loading,
+.orders-error {
+  padding: 40px 0;
+  text-align: center;
+  color: #6b7280;
+}
+
 .orders-header-row {
   display: flex;
   justify-content: space-between;

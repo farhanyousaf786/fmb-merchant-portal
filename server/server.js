@@ -6,6 +6,8 @@ import { fileURLToPath } from "url";
 import { setupDatabase } from "./database/setup.js";
 import authRoutes from "./routes/auth.js";
 import mediaRoutes from "./routes/media.js";
+import inventoryRoutes from "./routes/inventory.js";
+import ordersRoutes from "./routes/orders.js";
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/orders', ordersRoutes);
 
 // Start server
 async function start() {

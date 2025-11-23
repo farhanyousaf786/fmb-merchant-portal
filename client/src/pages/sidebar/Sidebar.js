@@ -41,6 +41,13 @@ const Sidebar = ({ user, onLogout }) => {
       path: '/catalogs'
     },
     {
+      id: 'inventory',
+      label: 'Inventory',
+      icon: '/assets/icons/catalog-icon.png',
+      path: '/inventory',
+      adminOnly: true
+    },
+    {
       id: 'trackings',
       label: 'Trackings',
       icon: '/assets/icons/tracking-icon.png',
