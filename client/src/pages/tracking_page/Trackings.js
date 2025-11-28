@@ -25,11 +25,8 @@ const Trackings = ({ user, onLogout }) => {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        // Filter to show only shipped/processing orders
-        const trackableOrders = data.orders.filter(o => 
-          ['processing', 'shipped', 'delivered'].includes(o.status)
-        );
-        setOrders(trackableOrders);
+        // Show all orders regardless of status
+        setOrders(data.orders);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -144,7 +141,30 @@ const Trackings = ({ user, onLogout }) => {
                           />
                         ) : (
                           <span className="tracking-number">
-                            {order.tracking_number || 'Not set'}
+                            {order.tracking_number ? (
+                              <a 
+                                href={`https://www.google.com/search?q=${order.tracking_number}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="tracking-link"
+                                style={{ 
+                                  color: '#DEAD25', 
+                                  fontWeight: '500',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                Tracking Details
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                  <polyline points="15 3 21 3 21 9" />
+                                  <line x1="10" y1="14" x2="21" y2="3" />
+                                </svg>
+                              </a>
+                            ) : (
+                              <span style={{ color: '#9CA3AF' }}>Pending</span>
+                            )}
                           </span>
                         )}
                       </td>

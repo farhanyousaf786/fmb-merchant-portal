@@ -285,16 +285,22 @@ router.get('/', auth, async (req, res) => {
 
     const [orders] = await pool.query(query, params);
     
-    // Get current status for each order from order_tracking
+    // Get current status and tracking number for each order from order_tracking
     for (let order of orders) {
       const [tracking] = await pool.query(
-        `SELECT status FROM order_tracking 
+        `SELECT status, tracking_number FROM order_tracking 
          WHERE order_id = ? 
          ORDER BY created_at DESC 
          LIMIT 1`,
         [order.id]
       );
-      order.status = tracking.length > 0 ? tracking[0].status : 'draft';
+      if (tracking.length > 0) {
+        order.status = tracking[0].status;
+        order.tracking_number = tracking[0].tracking_number;
+      } else {
+        order.status = 'draft';
+        order.tracking_number = null;
+      }
     }
     
     console.log('📊 Sample order data:', orders[0]);
