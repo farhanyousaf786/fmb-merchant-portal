@@ -105,20 +105,15 @@ const Orders = ({ user, onLogout }) => {
                     <div className="orders-actions">
                       <button
                         className="outline-pill-btn"
-                        disabled={!order.invoice_pdf_url}
-                        onClick={() => {
-                          if (order.invoice_pdf_url) {
-                            window.open(order.invoice_pdf_url, '_blank', 'noreferrer');
-                          }
-                        }}
-                      >
-                        View Invoice
-                      </button>
-                      <button
-                        className="primary-pill-btn"
                         onClick={goToCatalog}
                       >
                         Repeat order
+                      </button>
+                      <button
+                        className="blue-pill-btn"
+                        onClick={() => navigate(`/orders/${order.id}`)}
+                      >
+                        Details
                       </button>
                     </div>
                   </td>

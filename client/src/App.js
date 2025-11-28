@@ -9,6 +9,7 @@ const Dashboard = React.lazy(() => import('./pages/dashboard/Dashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
 const Inventory = React.lazy(() => import('./pages/inventory/Inventory'));
 const Orders = React.lazy(() => import('./pages/orders/Orders'));
+const OrderDetail = React.lazy(() => import('./pages/orders/OrderDetail'));
 const Catalogs = React.lazy(() => import('./pages/catalog/Catalog'));
 const Checkouts = React.lazy(() => import('./pages/checkout_page/Checkouts'));
 const Invoices = React.lazy(() => import('./pages/invoices/Invoices'));
@@ -111,6 +112,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Orders user={user} onLogout={handleLogout} />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/orders/:id"
+              element={
+                <ProtectedRoute>
+                  <OrderDetail user={user} onLogout={handleLogout} />
                 </ProtectedRoute>
               }
             />

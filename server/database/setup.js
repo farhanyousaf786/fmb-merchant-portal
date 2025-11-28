@@ -52,7 +52,10 @@ export async function setupDatabase() {
     CREATE TABLE IF NOT EXISTS orders (
       id INT AUTO_INCREMENT PRIMARY KEY,
       user_id INT NOT NULL,
-      status ENUM('draft','submitted') NOT NULL DEFAULT 'draft',
+      status ENUM('draft','submitted','processing','shipped','delivered','cancelled','declined') NOT NULL DEFAULT 'draft',
+      tracking_number VARCHAR(100),
+      decline_reason TEXT,
+      
       -- Contact / billing info
       contact_first_name VARCHAR(100),
       contact_last_name VARCHAR(100),
@@ -75,6 +78,7 @@ export async function setupDatabase() {
       invoice_number VARCHAR(50),
       invoice_pdf_url VARCHAR(500),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
@@ -95,6 +99,22 @@ export async function setupDatabase() {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
   console.log('✅ Order items table created/verified');
+
+  // 5. Create order_tracking table (audit trail for status changes)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS order_tracking (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      order_id INT NOT NULL,
+      status ENUM('draft','submitted','processing','shipped','delivered','cancelled','declined') NOT NULL,
+      tracking_number VARCHAR(100),
+      notes TEXT,
+      updated_by INT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_tracking_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+      CONSTRAINT fk_tracking_user FOREIGN KEY (updated_by) REFERENCES users(id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Order tracking table created/verified');
 
   // 5. Seed master admin if not exists
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fmb@admin.com';

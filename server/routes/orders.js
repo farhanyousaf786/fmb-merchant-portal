@@ -288,4 +288,102 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get single order details with tracking history
+router.get('/:id', auth, async (req, res) => {
+  console.log('📋 Get order details request received');
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+    const pool = await getPool();
+
+    // Check if order exists and user has access
+    const [orders] = await pool.query('SELECT user_id FROM orders WHERE id = ?', [id]);
+    
+    if (orders.length === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Merchants can only see their own orders
+    if (userRole !== 'admin' && orders[0].user_id !== userId) {
+      return res.status(403).json({ success: false, error: 'Access denied' });
+    }
+
+    // Import Order model dynamically
+    const Order = (await import('../models/Order.js')).default;
+    const orderDetails = await Order.findById(id);
+
+    res.json({ success: true, order: orderDetails });
+  } catch (error) {
+    console.error('❌ Error fetching order details:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch order details' });
+  }
+});
+
+// Update order status (admin only)
+router.put('/:id/status', auth, async (req, res) => {
+  console.log('🔄 Update order status request received');
+  try {
+    const { id } = req.params;
+    const { status, notes, decline_reason } = req.body;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    if (userRole !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+
+    const validStatuses = ['draft', 'submitted', 'processing', 'shipped', 'delivered', 'cancelled', 'declined'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ success: false, error: 'Invalid status' });
+    }
+
+    const Order = (await import('../models/Order.js')).default;
+    await Order.updateStatus({
+      orderId: id,
+      status,
+      notes,
+      updatedBy: userId,
+      declineReason: status === 'declined' ? decline_reason : null
+    });
+
+    res.json({ success: true, message: 'Order status updated successfully' });
+  } catch (error) {
+    console.error('❌ Error updating order status:', error);
+    res.status(500).json({ success: false, error: 'Failed to update order status' });
+  }
+});
+
+// Update tracking number (admin only)
+router.put('/:id/tracking', auth, async (req, res) => {
+  console.log('📦 Update tracking number request received');
+  try {
+    const { id } = req.params;
+    const { tracking_number, notes } = req.body;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    if (userRole !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+
+    if (!tracking_number) {
+      return res.status(400).json({ success: false, error: 'Tracking number is required' });
+    }
+
+    const Order = (await import('../models/Order.js')).default;
+    await Order.updateTrackingNumber({
+      orderId: id,
+      trackingNumber: tracking_number,
+      notes,
+      updatedBy: userId
+    });
+
+    res.json({ success: true, message: 'Tracking number updated successfully' });
+  } catch (error) {
+    console.error('❌ Error updating tracking number:', error);
+    res.status(500).json({ success: false, error: 'Failed to update tracking number' });
+  }
+});
+
 export default router;

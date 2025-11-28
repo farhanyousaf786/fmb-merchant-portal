@@ -110,6 +110,21 @@
   color: #ffffff;
 }
 
+.blue-pill-btn {
+  background: #3b82f6;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.blue-pill-btn:hover {
+  background: #2563eb;
+}
+
 .orders-loading,
 .orders-error {
   padding: 40px 0;
@@ -185,25 +200,25 @@
   .main-content {
     margin-left: 0;
   }
-  
+
   .orders-container {
     padding: 20px;
   }
-  
+
   .orders-header h1 {
     font-size: 28px;
   }
-  
+
   .empty-icon {
     width: 100px;
     height: 100px;
   }
-  
+
   .empty-icon svg {
     width: 50px;
     height: 50px;
   }
-  
+
   .orders-empty-state h2 {
     font-size: 20px;
   }
