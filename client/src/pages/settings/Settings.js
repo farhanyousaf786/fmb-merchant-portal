@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../sidebar/Sidebar';
 import EditDialog from './components/EditDialog/EditDialog';
+import BusinessDetails from './components/BusinessDetails';
+import DeliveryAddress from './components/DeliveryAddress';
 import Toast from '../../components/Toast/Toast';
 import './Settings.css';
 
@@ -168,6 +170,33 @@ const Settings = ({ user, onLogout }) => {
     setAvatarPreview(null);
   };
 
+  // Save business details
+  const handleBusinessSave = async (businessData) => {
+    try {
+      console.log('📝 Saving business details:', businessData);
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(businessData)
+      });
+      
+      const data = await response.json();
+      if (response.ok && data.success) {
+        // Update local state
+        setFormData(prev => ({ ...prev, ...businessData }));
+        setToast({ type: 'success', message: '✅ Business details updated successfully!' });
+      } else {
+        setToast({ type: 'error', message: data.error || 'Failed to update business details' });
+      }
+    } catch (error) {
+      console.error('❌ Error saving business details:', error);
+      setToast({ type: 'error', message: 'Error updating business details' });
+    }
+  };
+
   return (
     <div className="dashboard-layout">
       <Sidebar user={user} onLogout={onLogout} />
@@ -217,18 +246,22 @@ const Settings = ({ user, onLogout }) => {
                 >
                   Delivery Address
                 </button>
-                <button 
-                  className={`sidebar-tab ${activeTab === 'notifications' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('notifications')}
-                >
-                  Notifications
-                </button>
-                <button 
-                  className={`sidebar-tab ${activeTab === 'security' ? 'active' : ''}`}
-                  onClick={() => setActiveTab('security')}
-                >
-                  Security
-                </button>
+                {user?.role !== 'merchant' && (
+                  <>
+                    <button 
+                      className={`sidebar-tab ${activeTab === 'notifications' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('notifications')}
+                    >
+                      Notifications
+                    </button>
+                    <button 
+                      className={`sidebar-tab ${activeTab === 'security' ? 'active' : ''}`}
+                      onClick={() => setActiveTab('security')}
+                    >
+                      Security
+                    </button>
+                  </>
+                )}
                 <button 
                   className={`sidebar-tab delete ${activeTab === 'delete' ? 'active' : ''}`}
                   onClick={() => setActiveTab('delete')}
@@ -370,9 +403,19 @@ const Settings = ({ user, onLogout }) => {
                       </div>
                     </div>
                   </div>
+                )
+
+}
+
+                {activeTab === 'business' && (
+                  <BusinessDetails user={user} onSave={handleBusinessSave} />
                 )}
 
-                {activeTab !== 'profile' && (
+                {activeTab === 'delivery' && (
+                  <DeliveryAddress />
+                )}
+
+                {activeTab !== 'profile' && activeTab !== 'business' && activeTab !== 'delivery' && (
                   <div className="placeholder-content">
                     <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Section</h2>
                     <p>This section is under development.</p>

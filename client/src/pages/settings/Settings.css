@@ -343,7 +343,7 @@
   .settings-layout {
     grid-template-columns: 200px 1fr;
   }
-  
+
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -353,45 +353,45 @@
   .main-content {
     margin-left: 0;
   }
-  
+
   .settings-container {
     padding: 20px;
   }
-  
+
   .settings-header {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
-  
+
   .search-input {
     width: 100%;
   }
-  
+
   .settings-content h1 {
     font-size: 28px;
   }
-  
+
   .settings-layout {
     grid-template-columns: 1fr;
     gap: 24px;
   }
-  
+
   .settings-sidebar {
     flex-direction: row;
     overflow-x: auto;
     gap: 8px;
   }
-  
+
   .sidebar-tab {
     white-space: nowrap;
     flex-shrink: 0;
   }
-  
+
   .settings-main-content {
     padding: 24px;
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
@@ -555,7 +555,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,7 +568,7 @@
   padding: 2rem;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .modal-header {
@@ -745,4 +745,110 @@
 
 .edit-profile-btn:active {
   transform: translateY(0);
+}
+
+/* Business Details Section */
+.cancel-btn-outline {
+  padding: 12px 24px;
+  background: white;
+  border: 1px solid #DEAD25;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #DEAD25;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn-outline:hover {
+  background: #fff8e1;
+}
+
+.save-btn-gold {
+  padding: 12px 24px;
+  background: #DEAD25;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(222, 173, 37, 0.2);
+}
+
+.save-btn-gold:hover {
+  background: #c99a20;
+  box-shadow: 0 4px 8px rgba(222, 173, 37, 0.3);
+}
+
+/* Delivery Address Section */
+.add-address-btn {
+  padding: 10px 20px;
+  background: #DEAD25;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-address-btn:hover {
+  background: #c99a20;
+}
+
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.address-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+}
+
+.address-card.default {
+  background: #fffdf5;
+  /* Light yellow tint */
+  border-color: #fde68a;
+}
+
+.address-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.address-card h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.address-card p {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.verified-badge {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #a7f3d0;
+}
+
+.address-header .verified-badge {
+  position: static;
+  transform: none;
 }

@@ -84,6 +84,28 @@ export async function setupDatabase() {
   `);
   console.log('✅ Orders table created/verified');
 
+  // Add missing columns if they don't exist (migration)
+  const [columns] = await pool.query(`
+    SELECT COLUMN_NAME 
+    FROM INFORMATION_SCHEMA.COLUMNS 
+    WHERE TABLE_SCHEMA = DATABASE() 
+    AND TABLE_NAME = 'orders'
+  `);
+  
+  const existingColumns = columns.map(col => col.COLUMN_NAME);
+  
+  if (!existingColumns.includes('tracking_number')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(100)`);
+    console.log('✅ Added tracking_number column');
+  }
+  
+  if (!existingColumns.includes('decline_reason')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN decline_reason TEXT`);
+    console.log('✅ Added decline_reason column');
+  }
+  
+  console.log('✅ Orders table columns verified');
+
   // 4. Create order_items table
   await pool.query(`
     CREATE TABLE IF NOT EXISTS order_items (

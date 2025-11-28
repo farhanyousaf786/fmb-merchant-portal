@@ -155,15 +155,14 @@ router.post('/', auth, async (req, res) => {
     // Insert order
     const [orderResult] = await pool.query(
       `INSERT INTO orders (
-        user_id, status,
+        user_id,
         contact_first_name, contact_last_name, contact_email, contact_phone,
         delivery_address, delivery_city, delivery_country, delivery_postal,
         notes,
         subtotal_amount, tax_amount, delivery_fee, discount_amount, total_amount
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
-        status,
         contact_first_name || null,
         contact_last_name || null,
         contact_email || null,
@@ -182,6 +181,13 @@ router.post('/', auth, async (req, res) => {
     );
 
     const orderId = orderResult.insertId;
+
+    // Create initial tracking entry
+    await pool.query(
+      `INSERT INTO order_tracking (order_id, status, notes, updated_by) 
+       VALUES (?, ?, ?, ?)`,
+      [orderId, status, 'Order created', userId]
+    );
 
     // Insert order items
     for (const it of preparedItems) {
@@ -252,7 +258,6 @@ router.get('/', auth, async (req, res) => {
       // Admins can see all orders
       query = `SELECT 
          o.id,
-         o.status,
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
@@ -266,7 +271,6 @@ router.get('/', auth, async (req, res) => {
       // Merchants/staff see only their own orders
       query = `SELECT 
          o.id,
-         o.status,
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
@@ -280,6 +284,20 @@ router.get('/', auth, async (req, res) => {
     }
 
     const [orders] = await pool.query(query, params);
+    
+    // Get current status for each order from order_tracking
+    for (let order of orders) {
+      const [tracking] = await pool.query(
+        `SELECT status FROM order_tracking 
+         WHERE order_id = ? 
+         ORDER BY created_at DESC 
+         LIMIT 1`,
+        [order.id]
+      );
+      order.status = tracking.length > 0 ? tracking[0].status : 'draft';
+    }
+    
+    console.log('📊 Sample order data:', orders[0]);
 
     res.json({ success: true, orders });
   } catch (error) {
@@ -339,9 +357,16 @@ router.put('/:id/status', auth, async (req, res) => {
     }
 
     const Order = (await import('../models/Order.js')).default;
+    
+    // Get current tracking number if not provided
+    const pool = await getPool();
+    const [currentOrder] = await pool.query('SELECT tracking_number FROM orders WHERE id = ?', [id]);
+    const currentTrackingNumber = currentOrder[0]?.tracking_number || null;
+    
     await Order.updateStatus({
       orderId: id,
       status,
+      trackingNumber: currentTrackingNumber,
       notes,
       updatedBy: userId,
       declineReason: status === 'declined' ? decline_reason : null

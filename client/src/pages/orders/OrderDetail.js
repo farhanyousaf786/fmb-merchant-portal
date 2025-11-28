@@ -27,6 +27,7 @@ const OrderDetail = ({ user, onLogout }) => {
       });
       const data = await response.json();
       if (response.ok && data.success) {
+        console.log('📦 Fetched order data:', data.order);
         setOrder(data.order);
         setNewStatus(data.order.status);
         setTrackingNumber(data.order.tracking_number || '');
@@ -80,7 +81,7 @@ const OrderDetail = ({ user, onLogout }) => {
         alert('Status updated successfully');
         setNotes('');
         setDeclineReason('');
-        fetchOrderDetails(); // Refresh
+        await fetchOrderDetails(); // Wait for refresh to complete
       } else {
         alert(data.error || 'Failed to update status');
       }
@@ -117,7 +118,7 @@ const OrderDetail = ({ user, onLogout }) => {
       if (response.ok && data.success) {
         alert('Tracking number updated successfully');
         setNotes('');
-        fetchOrderDetails(); // Refresh
+        await fetchOrderDetails(); // Wait for refresh to complete
       } else {
         alert(data.error || 'Failed to update tracking number');
       }
@@ -267,7 +268,7 @@ const OrderDetail = ({ user, onLogout }) => {
 
                 {/* Customer Info Card */}
                 <section className="detail-card">
-                  <h3>Customer Details</h3>
+                  <h3>Shipping Information</h3>
                   <div className="customer-grid">
                     <div className="customer-item">
                       <span className="label">Contact</span>
@@ -276,11 +277,31 @@ const OrderDetail = ({ user, onLogout }) => {
                       <span className="sub-value">{order.contact_phone}</span>
                     </div>
                     <div className="customer-item">
-                      <span className="label">Shipping Address</span>
+                      <span className="label">Address</span>
                       <span className="value">{order.delivery_address}</span>
                       <span className="sub-value">{order.delivery_city}, {order.delivery_country} {order.delivery_postal}</span>
                     </div>
                   </div>
+
+                  {order.customer_detail && (
+                    <>
+                      <div style={{ height: '24px' }}></div>
+                      <h3>Customer Information</h3>
+                      <div className="customer-grid">
+                        <div className="customer-item">
+                          <span className="label">Account</span>
+                          <span className="value">{order.customer_detail.business_name}</span>
+                          <span className="sub-value">ID: #{order.customer_detail.id}</span>
+                        </div>
+                        <div className="customer-item">
+                          <span className="label">Contact</span>
+                          <span className="value">{order.customer_detail.first_name} {order.customer_detail.last_name}</span>
+                          <span className="sub-value">{order.customer_detail.email}</span>
+                          <span className="sub-value">{order.customer_detail.phone}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </section>
               </div>
 
@@ -333,38 +354,7 @@ const OrderDetail = ({ user, onLogout }) => {
                 </div>
               </section>
 
-              {/* Tracking History - Full Width */}
-              {order.tracking_history && order.tracking_history.length > 0 && (
-                <section className="detail-card">
-                  <h3>Order Timeline</h3>
-                  <div className="timeline horizontal-timeline">
-                    {order.tracking_history.map((entry, idx) => (
-                      <div key={idx} className="timeline-item">
-                        <div className="timeline-marker"></div>
-                        <div className="timeline-content">
-                          <div className="timeline-date">
-                            {new Date(entry.created_at).toLocaleString()}
-                          </div>
-                          <div className={`status-badge status-${entry.status} small-badge`}>
-                            {entry.status}
-                          </div>
-                          {entry.tracking_number && (
-                            <div className="timeline-tracking">
-                              Tracking: {entry.tracking_number}
-                            </div>
-                          )}
-                          {entry.notes && (
-                            <div className="timeline-notes">"{entry.notes}"</div>
-                          )}
-                          <div className="timeline-user">
-                            by {entry.first_name} {entry.last_name}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
+              {/* Order Timeline removed - status shown in Order Information card */}
             </div>
           )}
         </div>

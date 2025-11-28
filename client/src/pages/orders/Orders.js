@@ -20,6 +20,7 @@ const Orders = ({ user, onLogout }) => {
           }
         });
         const data = await response.json();
+        console.log('📦 Received orders data:', data.orders);
         if (response.ok && data.success) {
           setOrders(data.orders || []);
         } else {
@@ -98,7 +99,7 @@ const Orders = ({ user, onLogout }) => {
                   <td>{eta}</td>
                   <td>
                     <span className={`status-pill status-${order.status}`}>
-                      {order.status === 'submitted' ? 'Paid' : 'Pending'}
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                     </span>
                   </td>
                   <td>

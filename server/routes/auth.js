@@ -91,13 +91,17 @@ router.put('/update', auth, async (req, res) => {
   console.log('Update user profile request received');
   try {
     console.log('Received profile update request from user:', req.user.userId);
-    const { first_name, last_name, email, phone, country, legal_address, avatar_url } = req.body;
+    const { 
+      first_name, last_name, email, phone, country, legal_address, avatar_url,
+      business_name, primary_contact_name, branch 
+    } = req.body;
     const userId = req.user.userId;
 
     console.log('Update data:', req.body);
-    if (!first_name || !last_name || !email) {
+    // Basic validation (email is usually required, names might be optional depending on logic, but let's keep existing validation)
+    if (!email) {
       console.log('Required fields missing');
-      return res.status(400).json({ success: false, error: 'Required fields missing' });
+      return res.status(400).json({ success: false, error: 'Email is required' });
     }
 
     console.log('Updating user profile with data:', req.body);
@@ -106,9 +110,30 @@ router.put('/update', auth, async (req, res) => {
 
     const pool = await getPool();
 
+    // Construct dynamic update query
+    const fields = [];
+    const values = [];
+
+    if (first_name) { fields.push('first_name = ?'); values.push(first_name); }
+    if (last_name) { fields.push('last_name = ?'); values.push(last_name); }
+    if (email) { fields.push('email = ?'); values.push(email); }
+    if (phone !== undefined) { fields.push('phone = ?'); values.push(phone); }
+    if (country !== undefined) { fields.push('country = ?'); values.push(country); }
+    if (legal_address !== undefined) { fields.push('legal_address = ?'); values.push(legal_address); }
+    if (avatar_url !== undefined) { fields.push('avatar_url = ?'); values.push(avatar_url); }
+    if (business_name !== undefined) { fields.push('business_name = ?'); values.push(business_name); }
+    if (primary_contact_name !== undefined) { fields.push('primary_contact_name = ?'); values.push(primary_contact_name); }
+    if (branch !== undefined) { fields.push('branch = ?'); values.push(branch); }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+
+    values.push(userId);
+
     const [result] = await pool.query(
-      `UPDATE users SET first_name = ?, last_name = ?, email = ?, phone = ?, country = ?, legal_address = ?, avatar_url = ? WHERE id = ?`,
-      [first_name, last_name, email, phone || null, country || null, legal_address || null, avatar_url || null, userId]
+      `UPDATE users SET ${fields.join(', ')} WHERE id = ?`,
+      values
     );
 
     console.log('Profile update query result:', result);
@@ -124,6 +149,113 @@ router.put('/update', auth, async (req, res) => {
   } catch (err) {
     console.error('Update profile error:', err);
     res.status(500).json({ success: false, error: 'Failed to update profile' });
+  }
+});
+
+// --- Address Management Routes ---
+
+// Get all addresses
+router.get('/addresses', auth, async (req, res) => {
+  try {
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+    const [addresses] = await pool.query(
+      'SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC',
+      [req.user.userId]
+    );
+    res.json({ success: true, addresses });
+  } catch (err) {
+    console.error('Get addresses error:', err);
+    res.status(500).json({ success: false, error: 'Failed to fetch addresses' });
+  }
+});
+
+// Add new address
+router.post('/addresses', auth, async (req, res) => {
+  try {
+    const { name, address, city, country, postal, is_default } = req.body;
+    if (!name || !address) {
+      return res.status(400).json({ success: false, error: 'Name and address are required' });
+    }
+
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+
+    // If setting as default, unset other defaults
+    if (is_default) {
+      await pool.query('UPDATE user_addresses SET is_default = FALSE WHERE user_id = ?', [req.user.userId]);
+    }
+
+    const [result] = await pool.query(
+      `INSERT INTO user_addresses (user_id, name, address, city, country, postal, is_default) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [req.user.userId, name, address, city || null, country || null, postal || null, is_default || false]
+    );
+
+    res.json({ success: true, message: 'Address added', id: result.insertId });
+  } catch (err) {
+    console.error('Add address error:', err);
+    res.status(500).json({ success: false, error: 'Failed to add address' });
+  }
+});
+
+// Update address (e.g. set default)
+router.put('/addresses/:id', auth, async (req, res) => {
+  try {
+    const { name, address, city, country, postal, is_default } = req.body;
+    const addressId = req.params.id;
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+
+    // Verify ownership
+    const [existing] = await pool.query('SELECT id FROM user_addresses WHERE id = ? AND user_id = ?', [addressId, req.user.userId]);
+    if (existing.length === 0) {
+      return res.status(404).json({ success: false, error: 'Address not found' });
+    }
+
+    // If setting as default, unset other defaults
+    if (is_default) {
+      await pool.query('UPDATE user_addresses SET is_default = FALSE WHERE user_id = ?', [req.user.userId]);
+    }
+
+    const fields = [];
+    const values = [];
+    if (name) { fields.push('name = ?'); values.push(name); }
+    if (address) { fields.push('address = ?'); values.push(address); }
+    if (city !== undefined) { fields.push('city = ?'); values.push(city); }
+    if (country !== undefined) { fields.push('country = ?'); values.push(country); }
+    if (postal !== undefined) { fields.push('postal = ?'); values.push(postal); }
+    if (is_default !== undefined) { fields.push('is_default = ?'); values.push(is_default); }
+
+    if (fields.length > 0) {
+      values.push(addressId);
+      await pool.query(`UPDATE user_addresses SET ${fields.join(', ')} WHERE id = ?`, values);
+    }
+
+    res.json({ success: true, message: 'Address updated' });
+  } catch (err) {
+    console.error('Update address error:', err);
+    res.status(500).json({ success: false, error: 'Failed to update address' });
+  }
+});
+
+// Delete address
+router.delete('/addresses/:id', auth, async (req, res) => {
+  try {
+    const addressId = req.params.id;
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+
+    const [result] = await pool.query('DELETE FROM user_addresses WHERE id = ? AND user_id = ?', [addressId, req.user.userId]);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, error: 'Address not found' });
+    }
+
+    res.json({ success: true, message: 'Address deleted' });
+  } catch (err) {
+    console.error('Delete address error:', err);
+    res.status(500).json({ success: false, error: 'Failed to delete address' });
   }
 });
 
