@@ -91,8 +91,27 @@ const Orders = ({ user, onLogout }) => {
               });
 
               return (
-                <tr key={order.id}>
-                  <td>#{String(order.id).padStart(5, '0')}</td>
+                <tr 
+                  key={order.id}
+                  style={order.status === 'submitted' ? { backgroundColor: 'rgba(253, 230, 138, 0.2)' } : {}}
+                >
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {order.status === 'submitted' && (
+                        <span 
+                          style={{
+                            width: '8px',
+                            height: '8px',
+                            backgroundColor: '#ef4444',
+                            borderRadius: '50%',
+                            display: 'inline-block'
+                          }} 
+                          title="New Order"
+                        />
+                      )}
+                      #{String(order.id).padStart(5, '0')}
+                    </div>
+                  </td>
                   <td className="muted">Multiple</td>
                   <td>{qty}</td>
                   <td>${total}</td>
