@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import './CheckoutDialog.css';
 
-const CheckoutDialog = ({ isOpen, cart, onClose, onPlaceOrder }) => {
+const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -13,6 +13,84 @@ const CheckoutDialog = ({ isOpen, cart, onClose, onPlaceOrder }) => {
     postal: '',
     notes: '',
   });
+
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+
+  // Helper to fill address fields
+  const fillAddressForm = useCallback((addr) => {
+    setForm(prev => ({
+      ...prev,
+      address: addr.address,
+      city: addr.city || '',
+      country: addr.country || '',
+      postal: addr.postal || ''
+    }));
+  }, []);
+
+  // Fetch addresses and pre-fill user info when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      // Pre-fill contact info from user prop
+      if (user) {
+        setForm(prev => ({
+          ...prev,
+          firstName: user.first_name || '',
+          lastName: user.last_name || '',
+          email: user.email || '',
+          phone: user.phone || ''
+        }));
+      }
+
+      // Fetch saved addresses
+      const fetchAddresses = async () => {
+        try {
+          const token = localStorage.getItem('authToken');
+          const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/addresses`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const data = await response.json();
+          if (data.success) {
+            setAddresses(data.addresses);
+            
+            // Find default address and auto-fill
+            const defaultAddr = data.addresses.find(a => a.is_default);
+            if (defaultAddr) {
+              setSelectedAddressId(defaultAddr.id);
+              fillAddressForm(defaultAddr);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch addresses:', error);
+        }
+      };
+
+      fetchAddresses();
+    }
+  }, [isOpen, user, fillAddressForm]);
+
+  const handleAddressSelect = (e) => {
+    const addrId = parseInt(e.target.value);
+    setSelectedAddressId(addrId);
+    
+    if (addrId === -1) {
+      // Clear address fields if "New Address" selected
+      setForm(prev => ({
+        ...prev,
+        address: '',
+        city: '',
+        country: '',
+        postal: ''
+      }));
+    } else {
+      const selected = addresses.find(a => a.id === addrId);
+      if (selected) {
+        fillAddressForm(selected);
+      }
+    }
+  };
 
   const totals = useMemo(() => {
     const subtotal = cart.reduce(
@@ -112,6 +190,34 @@ const CheckoutDialog = ({ isOpen, cart, onClose, onPlaceOrder }) => {
               </div>
 
               <div className="section-title">Delivery Address</div>
+              
+              {/* Saved Addresses Dropdown */}
+              {addresses.length > 0 && (
+                <div className="form-field full" style={{ marginBottom: '15px' }}>
+                  <label>Saved Addresses</label>
+                  <select 
+                    value={selectedAddressId} 
+                    onChange={handleAddressSelect}
+                    className="address-select"
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      borderRadius: '6px',
+                      border: '1px solid #ddd',
+                      backgroundColor: '#f9fafb',
+                      fontSize: '14px'
+                    }}
+                  >
+                    <option value="-1">-- Select or Enter New Address --</option>
+                    {addresses.map(addr => (
+                      <option key={addr.id} value={addr.id}>
+                        {addr.name} {addr.is_default ? '(Default)' : ''} - {addr.address}, {addr.city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="form-field full">
                 <label>
                   Address<span className="required">*</span>

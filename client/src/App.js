@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ToastProvider } from './components/Toast/ToastContext';
 import './App.css';
 
 // Lazy load components for better performance
@@ -57,17 +58,15 @@ function App() {
       if (data.success) {
         setUser(data.user);
       } else {
-        // Token invalid, logout
-        handleLogout();
+        localStorage.removeItem('authToken');
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
-      handleLogout();
+      console.error('Failed to fetch user data:', error);
+      localStorage.removeItem('authToken');
     }
-  }, [handleLogout]);
+  }, []);
 
   useEffect(() => {
-    // Check if user is logged in and fetch user data from server
     const token = localStorage.getItem('authToken');
     if (token) {
       fetchUserData(token);
@@ -75,114 +74,116 @@ function App() {
   }, [fetchUserData]);
 
   return (
-    <Router>
-      <div className="App">
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/auth" />} />
-            <Route path="/auth" element={<Auth setUser={setUser} />} />
-            <Route path="/signin" element={<Auth setUser={setUser} />} />
-            <Route path="/pending" element={<Pending />} />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/inventory"
-              element={
-                <ProtectedRoute>
-                  <Inventory user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/users"
-              element={
-                <ProtectedRoute>
-                  <Users user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <Orders user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders/:id"
-              element={
-                <ProtectedRoute>
-                  <OrderDetail user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/catalogs"
-              element={
-                <ProtectedRoute>
-                  <Catalogs user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/checkouts"
-              element={
-                <ProtectedRoute>
-                  <Checkouts user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/invoices"
-              element={
-                <ProtectedRoute>
-                  <Invoices user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/trackings"
-              element={
-                <ProtectedRoute>
-                  <Trackings user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/support"
-              element={
-                <ProtectedRoute>
-                  <Reviews user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/support-page"
-              element={
-                <ProtectedRoute>
-                  <Support user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings user={user} onLogout={handleLogout} />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </Suspense>
-      </div>
-    </Router>
+    <ToastProvider>
+      <Router>
+        <div className="App">
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/auth" />} />
+              <Route path="/auth" element={<Auth setUser={setUser} />} />
+              <Route path="/signin" element={<Auth setUser={setUser} />} />
+              <Route path="/pending" element={<Pending />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/inventory"
+                element={
+                  <ProtectedRoute>
+                    <Inventory user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/users"
+                element={
+                  <ProtectedRoute>
+                    <Users user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <ProtectedRoute>
+                    <Orders user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <OrderDetail user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/catalogs"
+                element={
+                  <ProtectedRoute>
+                    <Catalogs user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/checkouts"
+                element={
+                  <ProtectedRoute>
+                    <Checkouts user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/invoices"
+                element={
+                  <ProtectedRoute>
+                    <Invoices user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/trackings"
+                element={
+                  <ProtectedRoute>
+                    <Trackings user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/support"
+                element={
+                  <ProtectedRoute>
+                    <Reviews user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/support-page"
+                element={
+                  <ProtectedRoute>
+                    <Support user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+            </Routes>
+          </Suspense>
+        </div>
+      </Router>
+    </ToastProvider>
   );
 }
 

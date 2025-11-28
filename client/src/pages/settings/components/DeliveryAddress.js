@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../../components/Toast/ToastContext';
 import '../Settings.css';
 
 const DeliveryAddress = () => {
@@ -14,7 +15,7 @@ const DeliveryAddress = () => {
     postal: '',
     is_default: false
   });
-  const [toast, setToast] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     fetchAddresses();
@@ -64,7 +65,7 @@ const DeliveryAddress = () => {
     e.preventDefault();
     
     if (!formData.name || !formData.address) {
-      setToast({ type: 'error', message: 'Name and address are required' });
+      toast.error('Name and address are required');
       return;
     }
 
@@ -80,15 +81,15 @@ const DeliveryAddress = () => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setToast({ type: 'success', message: '✅ Address added successfully!' });
+        toast.success('✅ Address added successfully!');
         setShowModal(false);
         fetchAddresses(); // Refresh the list
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to add address' });
+        toast.error(data.error || 'Failed to add address');
       }
     } catch (error) {
       console.error('Error adding address:', error);
-      setToast({ type: 'error', message: 'Error adding address' });
+      toast.error('Error adding address');
     }
   };
 
@@ -105,14 +106,14 @@ const DeliveryAddress = () => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setToast({ type: 'success', message: '✅ Default address updated!' });
+        toast.success('✅ Default address updated!');
         fetchAddresses(); // Refresh the list
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to update address' });
+        toast.error(data.error || 'Failed to update address');
       }
     } catch (error) {
       console.error('Error updating address:', error);
-      setToast({ type: 'error', message: 'Error updating address' });
+      toast.error('Error updating address');
     }
   };
 
@@ -131,14 +132,14 @@ const DeliveryAddress = () => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setToast({ type: 'success', message: '✅ Address deleted successfully!' });
+        toast.success('✅ Address deleted successfully!');
         fetchAddresses(); // Refresh the list
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to delete address' });
+        toast.error(data.error || 'Failed to delete address');
       }
     } catch (error) {
       console.error('Error deleting address:', error);
-      setToast({ type: 'error', message: 'Error deleting address' });
+      toast.error('Error deleting address');
     }
   };
 
@@ -147,21 +148,6 @@ const DeliveryAddress = () => {
 
   return (
     <div className="delivery-section">
-      {toast && (
-        <div className={`toast toast-${toast.type}`} style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          background: toast.type === 'success' ? '#d1fae5' : '#fee2e2',
-          color: toast.type === 'success' ? '#065f46' : '#991b1b',
-          zIndex: 1000
-        }}>
-          {toast.message}
-        </div>
-      )}
-
       <div className="section-header">
         <h2>Manage your store locations and delivery adresses</h2>
         <button className="add-address-btn" onClick={handleAddAddress}>Add address</button>
@@ -176,10 +162,10 @@ const DeliveryAddress = () => {
               <div className="address-header">
                 <h3>{addr.name}</h3>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {addr.is_default && (
+                  {Boolean(addr.is_default) && (
                     <span className="verified-badge">Verified legal address</span>
                   )}
-                  {!addr.is_default && (
+                  {!Boolean(addr.is_default) && (
                     <button 
                       className="set-default-btn"
                       onClick={() => handleSetDefault(addr.id)}

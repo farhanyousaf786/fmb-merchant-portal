@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../../components/Toast/ToastContext';
 import '../Settings.css';
 
 const BusinessDetails = ({ user, onSave }) => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     business_name: '',
     branch: '',
@@ -12,6 +14,8 @@ const BusinessDetails = ({ user, onSave }) => {
 
   useEffect(() => {
     if (user) {
+      console.log('📊 User data received in BusinessDetails:', user);
+      console.log('🌿 Branch value from user:', user.branch);
       setFormData({
         business_name: user.business_name || '',
         branch: user.branch || '',
@@ -25,6 +29,35 @@ const BusinessDetails = ({ user, onSave }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(formData)
+      });
+      
+      const data = await response.json();
+      if (response.ok && data.success) {
+        toast.success('✅ Business details updated successfully!');
+        if (onSave) onSave(formData); // Notify parent component
+        
+        // Reload page after a short delay to show the updated data
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        toast.error(data.error || 'Failed to update business details');
+      }
+    } catch (error) {
+      console.error('❌ Error saving business details:', error);
+      toast.error('Error updating business details');
+    }
   };
 
   return (
@@ -47,60 +80,36 @@ const BusinessDetails = ({ user, onSave }) => {
 
         <div className="form-group">
           <label>Branch</label>
-          <div className="input-with-edit">
-            <input
-              type="text"
-              name="branch"
-              value={formData.branch}
-              onChange={handleChange}
-              className="form-input"
-              placeholder="e.g. Cambridge St. Saudi"
-            />
-            <button className="edit-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DEAD25" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-          </div>
+          <input
+            type="text"
+            name="branch"
+            value={formData.branch}
+            onChange={handleChange}
+            className="form-input"
+            placeholder="e.g. Cambridge St. Saudi"
+          />
         </div>
 
         <div className="form-group full-width">
           <label>Default delivery Address</label>
-          <div className="input-with-edit">
-            <input
-              type="text"
-              name="legal_address"
-              value={formData.legal_address}
-              onChange={handleChange}
-              className="form-input"
-            />
-            <button className="edit-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DEAD25" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-          </div>
+          <input
+            type="text"
+            name="legal_address"
+            value={formData.legal_address}
+            onChange={handleChange}
+            className="form-input"
+          />
         </div>
 
         <div className="form-group">
           <label>Contact Person</label>
-          <div className="input-with-edit">
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="form-input"
-            />
-            <button className="edit-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#DEAD25" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-              </svg>
-            </button>
-          </div>
+          <input
+            type="text"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            className="form-input"
+          />
         </div>
 
         <div className="form-group">
@@ -117,7 +126,7 @@ const BusinessDetails = ({ user, onSave }) => {
 
       <div className="form-actions">
         <button className="cancel-btn-outline" onClick={() => window.location.reload()}>Cancel</button>
-        <button className="save-btn-gold" onClick={() => onSave(formData)}>Save changes</button>
+        <button className="save-btn-gold" onClick={handleSave}>Save changes</button>
       </div>
     </div>
   );

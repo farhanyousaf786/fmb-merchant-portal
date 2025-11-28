@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
 import FiltersBar from '../dashboard/components/FiltersBar/FiltersBar';
 import ProductModal from './components/ProductModal';
@@ -7,6 +8,7 @@ import CheckoutDialog from './components/CheckoutDialog';
 import './Catalog.css';
 
 const Catalogs = ({ user, onLogout }) => {
+  const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]); // { inventoryId, name, type, unitPrice, quantity }
@@ -102,58 +104,58 @@ const Catalogs = ({ user, onLogout }) => {
   };
 
   const addToOrder = (productId) => {
-    setProducts(prevProducts => {
-      const product = prevProducts.find(p => p.id === productId);
-      if (!product) return prevProducts;
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
 
-      const newCartItems = [];
+    const newCartItems = [];
 
-      ['sliced', 'unsliced'].forEach(type => {
-        const opt = product[type];
-        if (opt.selected && opt.quantity > 0) {
-          newCartItems.push({
-            inventoryId: product.id,
-            name: product.name,
-            type,
-            unitPrice: product.price,
-            quantity: opt.quantity
-          });
+    ['sliced', 'unsliced'].forEach(type => {
+      const opt = product[type];
+      if (opt.selected && opt.quantity > 0) {
+        newCartItems.push({
+          inventoryId: product.id,
+          name: product.name,
+          type,
+          unitPrice: product.price,
+          quantity: opt.quantity
+        });
+      }
+    });
+
+    if (newCartItems.length === 0) {
+      toast.warning('Please select Sliced or Unsliced and set a quantity before adding to cart.');
+      return;
+    }
+
+    setCart(prevCart => {
+      const updated = [...prevCart];
+      newCartItems.forEach(item => {
+        const existingIndex = updated.findIndex(
+          c => c.inventoryId === item.inventoryId && c.type === item.type
+        );
+        if (existingIndex >= 0) {
+          updated[existingIndex] = {
+            ...updated[existingIndex],
+            quantity: updated[existingIndex].quantity + item.quantity
+          };
+        } else {
+          updated.push(item);
         }
       });
-
-      if (newCartItems.length === 0) {
-        alert('Please select Sliced or Unsliced and set a quantity before adding to cart.');
-        return prevProducts;
-      }
-
-      setCart(prevCart => {
-        const updated = [...prevCart];
-        newCartItems.forEach(item => {
-          const existingIndex = updated.findIndex(
-            c => c.inventoryId === item.inventoryId && c.type === item.type
-          );
-          if (existingIndex >= 0) {
-            updated[existingIndex] = {
-              ...updated[existingIndex],
-              quantity: updated[existingIndex].quantity + item.quantity
-            };
-          } else {
-            updated.push(item);
-          }
-        });
-        return updated;
-      });
-
-      // Reset selections for this product
-      return prevProducts.map(p => {
-        if (p.id !== productId) return p;
-        return {
-          ...p,
-          sliced: { quantity: 0, selected: false },
-          unsliced: { quantity: 0, selected: false }
-        };
-      });
+      return updated;
     });
+
+    // Reset selections for this product
+    setProducts(prevProducts => prevProducts.map(p => {
+      if (p.id !== productId) return p;
+      return {
+        ...p,
+        sliced: { quantity: 0, selected: false },
+        unsliced: { quantity: 0, selected: false }
+      };
+    }));
+
+    toast.success('Order added to cart');
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -341,6 +343,7 @@ const Catalogs = ({ user, onLogout }) => {
       <CheckoutDialog
         isOpen={isCheckoutOpen}
         cart={cart}
+        user={user}
         onClose={() => setIsCheckoutOpen(false)}
         onPlaceOrder={handlePlaceOrder}
       />

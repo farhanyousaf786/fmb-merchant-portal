@@ -98,11 +98,7 @@ router.put('/update', auth, async (req, res) => {
     const userId = req.user.userId;
 
     console.log('Update data:', req.body);
-    // Basic validation (email is usually required, names might be optional depending on logic, but let's keep existing validation)
-    if (!email) {
-      console.log('Required fields missing');
-      return res.status(400).json({ success: false, error: 'Email is required' });
-    }
+    // No strict validation - allow partial updates
 
     console.log('Updating user profile with data:', req.body);
     const { default: AdminUser } = await import('../models/AdminUser.js');

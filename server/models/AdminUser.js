@@ -5,6 +5,7 @@ class AdminUser {
   constructor(data) {
     this.id = data.id;
     this.business_name = data.business_name;
+    this.branch = data.branch;
     this.primary_contact_name = data.primary_contact_name;
     this.first_name = data.first_name;
     this.last_name = data.last_name;
@@ -35,7 +36,7 @@ class AdminUser {
   static async findById(id) {
     const pool = await getPool();
     const [rows] = await pool.query(
-      'SELECT id, business_name, primary_contact_name, first_name, last_name, email, phone, legal_address, country, city, postal, zip, avatar_url, role, status, created_at FROM users WHERE id = ? LIMIT 1', 
+      'SELECT id, business_name, branch, primary_contact_name, first_name, last_name, email, phone, legal_address, country, city, postal, zip, avatar_url, role, status, created_at FROM users WHERE id = ? LIMIT 1', 
       [id]
     );
     return rows.length > 0 ? new AdminUser(rows[0]) : null;
@@ -115,6 +116,7 @@ class AdminUser {
     return {
       id: this.id,
       business_name: this.business_name,
+      branch: this.branch,
       primary_contact_name: this.primary_contact_name,
       first_name: this.first_name,
       last_name: this.last_name,

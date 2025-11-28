@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
 import EditDialog from './components/EditDialog/EditDialog';
 import BusinessDetails from './components/BusinessDetails';
 import DeliveryAddress from './components/DeliveryAddress';
-import Toast from '../../components/Toast/Toast';
 import './Settings.css';
 
 const Settings = ({ user, onLogout }) => {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [toast, setToast] = useState(null);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [editFormData, setEditFormData] = useState({
@@ -101,7 +101,7 @@ const Settings = ({ user, onLogout }) => {
           avatarUrl = uploadData.url;
           console.log('✅ Avatar uploaded:', avatarUrl);
         } else {
-          setToast({ type: 'error', message: 'Failed to upload avatar' });
+          toast.error('Failed to upload avatar');
           return;
         }
       }
@@ -144,15 +144,15 @@ const Settings = ({ user, onLogout }) => {
         setIsEditDialogOpen(false);
         setSelectedAvatarFile(null);
         setAvatarPreview(null);
-        setToast({ type: 'success', message: '✅ Profile updated successfully!' });
+        toast.success('✅ Profile updated successfully!');
         console.log('✅ Profile saved successfully');
       } else {
-        setToast({ type: 'error', message: data.error || 'Failed to save changes' });
+        toast.error(data.error || 'Failed to save changes');
         console.error('❌ Save failed:', data.error);
       }
     } catch (error) {
       console.error('❌ Error saving profile:', error);
-      setToast({ type: 'error', message: 'Error saving profile. Please try again.' });
+      toast.error('Error saving profile. Please try again.');
     }
   };
 
@@ -170,32 +170,6 @@ const Settings = ({ user, onLogout }) => {
     setAvatarPreview(null);
   };
 
-  // Save business details
-  const handleBusinessSave = async (businessData) => {
-    try {
-      console.log('📝 Saving business details:', businessData);
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        },
-        body: JSON.stringify(businessData)
-      });
-      
-      const data = await response.json();
-      if (response.ok && data.success) {
-        // Update local state
-        setFormData(prev => ({ ...prev, ...businessData }));
-        setToast({ type: 'success', message: '✅ Business details updated successfully!' });
-      } else {
-        setToast({ type: 'error', message: data.error || 'Failed to update business details' });
-      }
-    } catch (error) {
-      console.error('❌ Error saving business details:', error);
-      setToast({ type: 'error', message: 'Error updating business details' });
-    }
-  };
 
   return (
     <div className="dashboard-layout">
@@ -403,12 +377,10 @@ const Settings = ({ user, onLogout }) => {
                       </div>
                     </div>
                   </div>
-                )
-
-}
+                )}
 
                 {activeTab === 'business' && (
-                  <BusinessDetails user={user} onSave={handleBusinessSave} />
+                  <BusinessDetails user={user} />
                 )}
 
                 {activeTab === 'delivery' && (
@@ -437,15 +409,7 @@ const Settings = ({ user, onLogout }) => {
         onAvatarSelect={handleAvatarSelect}
       />
 
-      {/* Toast Notification */}
-      {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          duration={3000}
-          onClose={() => setToast(null)}
-        />
-      )}
+
     </div>
   );
 };
