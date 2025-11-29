@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
 import './Inventory.css';
 
 const Inventory = ({ user, onLogout }) => {
+  const toast = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -31,7 +33,15 @@ const Inventory = ({ user, onLogout }) => {
       });
       const data = await res.json();
       if (data.success) {
-        setItems(data.items || []);
+        // Filter items based on user role
+        const allItems = data.items || [];
+        if (user?.role === 'admin') {
+          // Admin sees all items (active + inactive)
+          setItems(allItems);
+        } else {
+          // Merchants only see active items
+          setItems(allItems.filter(item => item.status === 'active'));
+        }
       } else {
         console.error('Failed to load inventory:', data.error);
       }
@@ -69,12 +79,12 @@ const Inventory = ({ user, onLogout }) => {
     if (!file) return;
 
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Please select an image file');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size must be less than 5MB');
+      toast.error('Image size must be less than 5MB');
       return;
     }
 
@@ -136,22 +146,45 @@ const Inventory = ({ user, onLogout }) => {
       });
       const data = await res.json();
       if (data.success) {
+        toast.success(isEdit ? 'Item updated successfully' : 'Item added successfully');
         setShowModal(false);
         setEditingItem(null);
         setSelectedImageFile(null);
         setImagePreview('');
         await fetchItems();
       } else {
-        alert(data.error || 'Failed to save item');
+        toast.error(data.error || 'Failed to save item');
       }
     } catch (err) {
       console.error('Error saving item:', err);
-      alert('Error saving item');
+      toast.error('Error saving item');
+    }
+  };
+
+  const handleToggleStatus = async (itemId) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const res = await fetch(`${process.env.REACT_APP_API_URL}/inventory/toggle-status/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success('Item status updated');
+        await fetchItems();
+      } else {
+        toast.error(data.error || 'Failed to update status');
+      }
+    } catch (err) {
+      console.error('Error toggling status:', err);
+      toast.error('Error updating status');
     }
   };
 
   const handleDelete = async (itemId) => {
-    if (!window.confirm('Delete this item?')) return;
+    if (!window.confirm('Delete this item permanently? This cannot be undone.')) return;
     try {
       const token = localStorage.getItem('authToken');
       const res = await fetch(`${process.env.REACT_APP_API_URL}/inventory/${itemId}`, {
@@ -162,13 +195,14 @@ const Inventory = ({ user, onLogout }) => {
       });
       const data = await res.json();
       if (data.success) {
+        toast.success('Item deleted successfully');
         await fetchItems();
       } else {
-        alert(data.error || 'Failed to delete item');
+        toast.error(data.error || 'Failed to delete item');
       }
     } catch (err) {
       console.error('Error deleting item:', err);
-      alert('Error deleting item');
+      toast.error('Error deleting item');
     }
   };
 
@@ -204,7 +238,7 @@ const Inventory = ({ user, onLogout }) => {
                   </tr>
                 ) : (
                   items.map(item => (
-                    <tr key={item.id}>
+                    <tr key={item.id} style={item.status === 'inactive' ? { opacity: 0.6, backgroundColor: '#f9fafb' } : {}}>
                       <td>{item.id}</td>
                       <td>{item.name}</td>
                       <td>${parseFloat(item.price).toFixed(2)}</td>
@@ -219,7 +253,31 @@ const Inventory = ({ user, onLogout }) => {
                       <td className="truncate">{item.note}</td>
                       <td>
                         <button className="secondary-btn" onClick={() => openEditModal(item)}>Edit</button>
-                        <button className="danger-btn" onClick={() => handleDelete(item.id)}>Delete</button>
+                        {user?.role === 'admin' && (
+                          <select
+                            value={item.status}
+                            onChange={(e) => {
+                              if (e.target.value !== item.status) {
+                                handleToggleStatus(item.id);
+                              }
+                            }}
+                            style={{
+                              marginLeft: '8px',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #d1d5db',
+                              backgroundColor: item.status === 'active' ? '#d1fae5' : '#fee2e2',
+                              color: item.status === 'active' ? '#065f46' : '#991b1b',
+                              fontWeight: '500',
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              outline: 'none'
+                            }}
+                          >
+                            <option value="active" style={{ backgroundColor: '#fff', color: '#065f46' }}>✓ Active</option>
+                            <option value="inactive" style={{ backgroundColor: '#fff', color: '#991b1b' }}>🔒 Inactive</option>
+                          </select>
+                        )}
                       </td>
                     </tr>
                   ))

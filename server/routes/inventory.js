@@ -67,6 +67,25 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
+// Toggle item status (active/inactive)
+router.put('/toggle-status/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const toggled = await Inventory.toggleStatus(id);
+    if (!toggled) {
+      return res.status(404).json({ success: false, error: 'Item not found' });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Item status updated successfully' 
+    });
+  } catch (error) {
+    console.error('Error toggling inventory status:', error);
+    res.status(500).json({ success: false, error: 'Failed to update status' });
+  }
+});
+
 // Delete item
 router.delete('/:id', auth, async (req, res) => {
   try {
@@ -79,6 +98,15 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ success: true, message: 'Item deleted successfully' });
   } catch (error) {
     console.error('Error deleting inventory item:', error);
+    
+    // Check if it's a foreign key constraint error
+    if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cannot delete this item because it has been ordered. Please contact support if you need to remove it from the catalog.' 
+      });
+    }
+    
     res.status(500).json({ success: false, error: 'Failed to delete item' });
   }
 });

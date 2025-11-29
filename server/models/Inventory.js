@@ -8,6 +8,7 @@ class Inventory {
     this.image = data.image;
     this.description = data.description;
     this.note = data.note;
+    this.status = data.status || 'active';
     this.created_at = data.created_at;
   }
 
@@ -25,7 +26,9 @@ class Inventory {
 
   static async findAll() {
     const pool = await getPool();
-    const [rows] = await pool.query('SELECT * FROM inventory ORDER BY created_at DESC');
+    const [rows] = await pool.query(
+      'SELECT * FROM inventory ORDER BY created_at DESC'
+    );
     return rows.map(row => new Inventory(row));
   }
 
@@ -35,6 +38,15 @@ class Inventory {
     const [result] = await pool.query(
       'UPDATE inventory SET name = ?, price = ?, image = ?, description = ?, note = ? WHERE id = ?',
       [name, price, image, description, note, id]
+    );
+    return result.affectedRows > 0;
+  }
+
+  static async toggleStatus(id) {
+    const pool = await getPool();
+    const [result] = await pool.query(
+      "UPDATE inventory SET status = IF(status = 'active', 'inactive', 'active') WHERE id = ?",
+      [id]
     );
     return result.affectedRows > 0;
   }

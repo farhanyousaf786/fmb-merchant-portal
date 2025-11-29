@@ -42,10 +42,19 @@ export async function setupDatabase() {
       image VARCHAR(500),
       description TEXT,
       note TEXT,
+      status ENUM('active', 'inactive') NOT NULL DEFAULT 'active',
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
   `);
   console.log('✅ Inventory table created/verified');
+  
+  // Add status column if it doesn't exist (for existing databases)
+  await pool.query(`
+    ALTER TABLE inventory 
+    ADD COLUMN IF NOT EXISTS status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
+  `).catch(() => {
+    // Column might already exist, ignore error
+  });
 
   // 3. Create orders table (stores checkout + invoice details)
   await pool.query(`

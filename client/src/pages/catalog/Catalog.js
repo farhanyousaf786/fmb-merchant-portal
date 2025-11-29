@@ -29,8 +29,11 @@ const Catalogs = ({ user, onLogout }) => {
       });
       const data = await response.json();
       if (data.success && data.items.length > 0) {
+        // Filter to show only active items
+        const activeItems = data.items.filter(item => item.status === 'active');
+        
         // Map DB items to UI format
-        const dbItems = data.items.map(item => ({
+        const dbItems = activeItems.map(item => ({
           id: item.id,
           name: item.name,
           price: parseFloat(item.price),
