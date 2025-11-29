@@ -147,6 +147,21 @@ export async function setupDatabase() {
   `);
   console.log('✅ Order tracking table created/verified');
 
+  // 6. Create support table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS support (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      notice TEXT,
+      email VARCHAR(150),
+      phone VARCHAR(50),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_support_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Support table created/verified');
+
   // 5. Seed master admin if not exists
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fmb@admin.com';
   const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';

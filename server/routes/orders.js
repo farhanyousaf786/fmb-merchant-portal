@@ -261,9 +261,11 @@ router.get('/', auth, async (req, res) => {
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
-         COALESCE(SUM(oi.quantity), 0) AS total_quantity
+         COALESCE(SUM(oi.quantity), 0) AS total_quantity,
+         GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
        LEFT JOIN order_items oi ON oi.order_id = o.id
+       LEFT JOIN inventory i ON oi.inventory_id = i.id
        GROUP BY o.id
        ORDER BY o.created_at DESC`;
       params = [];
@@ -274,9 +276,11 @@ router.get('/', auth, async (req, res) => {
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
-         COALESCE(SUM(oi.quantity), 0) AS total_quantity
+         COALESCE(SUM(oi.quantity), 0) AS total_quantity,
+         GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
        LEFT JOIN order_items oi ON oi.order_id = o.id
+       LEFT JOIN inventory i ON oi.inventory_id = i.id
        WHERE o.user_id = ?
        GROUP BY o.id
        ORDER BY o.created_at DESC`;
