@@ -19,6 +19,15 @@ const Inventory = ({ user, onLogout }) => {
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
 
+  // Helper to get full image URL
+  const getImageUrl = (imagePath) => {
+    if (!imagePath) return null;
+    // If it's already a full URL, return as is
+    if (imagePath.startsWith('http')) return imagePath;
+    // Otherwise, prepend the API URL
+    return `${process.env.REACT_APP_API_URL}${imagePath}`;
+  };
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -244,7 +253,7 @@ const Inventory = ({ user, onLogout }) => {
                       <td>${parseFloat(item.price).toFixed(2)}</td>
                       <td>
                         {item.image ? (
-                          <img src={item.image} alt={item.name} className="thumb" />
+                          <img src={getImageUrl(item.image)} alt={item.name} className="thumb" />
                         ) : (
                           <span className="no-image">No image</span>
                         )}
@@ -324,7 +333,7 @@ const Inventory = ({ user, onLogout }) => {
                   {(imagePreview || formData.image) && (
                     <div className="image-preview-wrapper">
                       <img
-                        src={imagePreview || formData.image}
+                        src={imagePreview || getImageUrl(formData.image)}
                         alt="Item preview"
                         className="thumb preview-thumb"
                       />
