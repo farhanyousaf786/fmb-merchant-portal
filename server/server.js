@@ -9,6 +9,8 @@ import mediaRoutes from "./routes/media.js";
 import inventoryRoutes from "./routes/inventory.js";
 import ordersRoutes from "./routes/orders.js";
 import supportRoutes from "./routes/support.js";
+import ticketsRoutes from "./routes/tickets.js";
+import reviewsRoutes from "./routes/reviews.js";
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/tickets', ticketsRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // Start server
 async function start() {

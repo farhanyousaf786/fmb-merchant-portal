@@ -162,6 +162,55 @@ export async function setupDatabase() {
   `);
   console.log('✅ Support table created/verified');
 
+  // 7. Create support_tickets table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      order_id INT,
+      subject VARCHAR(255) NOT NULL,
+      status ENUM('open', 'in_progress', 'resolved', 'closed') NOT NULL DEFAULT 'open',
+      priority ENUM('low', 'medium', 'high') NOT NULL DEFAULT 'medium',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      closed_at TIMESTAMP NULL,
+      CONSTRAINT fk_ticket_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      CONSTRAINT fk_ticket_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Support tickets table created/verified');
+
+  // 8. Create ticket_messages table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ticket_messages (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      ticket_id INT NOT NULL,
+      user_id INT NOT NULL,
+      message TEXT NOT NULL,
+      image_url VARCHAR(500),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_message_ticket FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+      CONSTRAINT fk_message_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Ticket messages table created/verified');
+
+  // 9. Create reviews table
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS reviews (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      order_id INT NOT NULL,
+      user_id INT NOT NULL,
+      rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+      feedback TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_review_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+      CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_order_review (order_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Reviews table created/verified');
+
   // 5. Seed master admin if not exists
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'fmb@admin.com';
   const ADMIN_PASS = process.env.ADMIN_PASS || 'admin';

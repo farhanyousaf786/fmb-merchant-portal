@@ -17,6 +17,7 @@ const Invoices = React.lazy(() => import('./pages/invoices/Invoices'));
 const Trackings = React.lazy(() => import('./pages/tracking_page/Trackings'));
 const Reviews = React.lazy(() => import('./pages/reviews/reviews'));
 const Support = React.lazy(() => import('./pages/support_page/Support'));
+const TicketDetail = React.lazy(() => import('./pages/support_page/TicketDetail'));
 const Settings = React.lazy(() => import('./pages/settings/Settings'));
 
 // Loading component
@@ -168,6 +169,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Support user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/support-page/:id"
+                element={
+                  <ProtectedRoute>
+                    <TicketDetail user={user} onLogout={handleLogout} />
                   </ProtectedRoute>
                 }
               />
