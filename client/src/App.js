@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastProvider } from './components/Toast/ToastContext';
 import './App.css';
 
+import { NotificationProvider } from './context/NotificationContext';
+
 // Lazy load components for better performance
 const Auth = React.lazy(() => import('./pages/auth/Auth'));
 const Pending = React.lazy(() => import('./pages/pending/Pending'));
@@ -76,8 +78,9 @@ function App() {
 
   return (
     <ToastProvider>
-      <Router>
-        <div className="App">
+      <NotificationProvider>
+        <Router>
+          <div className="App">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Navigate to="/auth" />} />
@@ -192,6 +195,7 @@ function App() {
           </Suspense>
         </div>
       </Router>
+    </NotificationProvider>
     </ToastProvider>
   );
 }

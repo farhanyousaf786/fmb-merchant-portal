@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../context/NotificationContext';
 import './Sidebar.css';
 
 const Sidebar = ({ user, onLogout }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { notifications } = useNotifications();
 
   const handleLogout = () => {
     if (onLogout) {
@@ -185,7 +187,18 @@ const Sidebar = ({ user, onLogout }) => {
                        item.id === 'settings' ? '⚙️' : '📄'}
                     </span>
                   </span>
-                  <span className="nav-label">{item.label}</span>
+                  <span className="nav-label">
+                    {item.label}
+                    {item.id === 'orders' && notifications.orders > 0 && (
+                      <span className="nav-badge">{notifications.orders}</span>
+                    )}
+                    {item.id === 'reviews' && notifications.reviews > 0 && (
+                      <span className="nav-badge">{notifications.reviews}</span>
+                    )}
+                    {item.id === 'support' && notifications.support > 0 && (
+                      <span className="nav-badge">{notifications.support}</span>
+                    )}
+                  </span>
                 </Link>
               </li>
             );

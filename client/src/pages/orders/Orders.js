@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../context/NotificationContext';
 import Sidebar from '../sidebar/Sidebar';
 import FiltersBar from '../dashboard/components/FiltersBar/FiltersBar';
 import './Orders.css';
 
 const Orders = ({ user, onLogout }) => {
   const navigate = useNavigate();
+  const { markAsSeen } = useNotifications();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    markAsSeen('orders');
     const fetchOrders = async () => {
       try {
         const token = localStorage.getItem('authToken');

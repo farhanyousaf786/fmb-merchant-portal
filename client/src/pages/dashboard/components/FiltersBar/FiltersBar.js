@@ -1,9 +1,10 @@
 import React from 'react';
 import './FiltersBar.css';
 
-const FiltersBar = ({ primaryAction }) => {
+const FiltersBar = ({ primaryAction, onFilterChange }) => {
   const [activeDropdown, setActiveDropdown] = React.useState(null);
   const [dateFilter, setDateFilter] = React.useState('Today');
+  const [statusFilter, setStatusFilter] = React.useState('All Status');
 
   const toggleDropdown = (name) => {
     setActiveDropdown(activeDropdown === name ? null : name);
@@ -12,6 +13,17 @@ const FiltersBar = ({ primaryAction }) => {
   const handleDateSelect = (option) => {
     setDateFilter(option);
     setActiveDropdown(null);
+    if (onFilterChange) {
+      onFilterChange({ date: option, status: statusFilter });
+    }
+  };
+
+  const handleStatusSelect = (option) => {
+    setStatusFilter(option);
+    setActiveDropdown(null);
+    if (onFilterChange) {
+      onFilterChange({ date: dateFilter, status: option });
+    }
   };
 
   // Close dropdown when clicking outside
@@ -48,16 +60,19 @@ const FiltersBar = ({ primaryAction }) => {
 
         <div className="filter-dropdown-container">
           <button 
-            className={`filter-btn ${activeDropdown === 'filter' ? 'active' : ''}`}
-            onClick={() => toggleDropdown('filter')}
+            className={`filter-btn ${activeDropdown === 'status' ? 'active' : ''}`}
+            onClick={() => toggleDropdown('status')}
           >
-            Filter by ▾
+            {statusFilter} ▾
           </button>
-          {activeDropdown === 'filter' && (
+          {activeDropdown === 'status' && (
             <div className="filter-dropdown-menu">
-              <div className="dropdown-item">Status</div>
-              <div className="dropdown-item">Type</div>
-              <div className="dropdown-item">Price</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('All Status')}>All Status</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('Submitted')}>Submitted</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('Processing')}>Processing</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('Shipped')}>Shipped</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('Delivered')}>Delivered</div>
+              <div className="dropdown-item" onClick={() => handleStatusSelect('Cancelled')}>Cancelled</div>
             </div>
           )}
         </div>

@@ -40,7 +40,13 @@ async function generateInvoicePdf({
   discountAmount,
   preparedItems,
 }) {
-  const invoiceNumber = `INV${new Date().getFullYear()}-${orderId}`;
+  const invoiceNumber = `INV${new Date().getFullYear()}-${String(orderId).padStart(5, '0')}`;
+  const invoiceDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   const invoicesDir = path.join(__dirname, '..', 'public', 'invoices');
   if (!fs.existsSync(invoicesDir)) {
     fs.mkdirSync(invoicesDir, { recursive: true });
@@ -50,48 +56,119 @@ async function generateInvoicePdf({
   const pdfPath = path.join(invoicesDir, pdfFilename);
   const pdfUrl = `/invoices/${pdfFilename}`;
 
-  const doc = new PDFDocument();
+  const doc = new PDFDocument({ margin: 50 });
   const writeStream = fs.createWriteStream(pdfPath);
   doc.pipe(writeStream);
 
-  doc.fontSize(18).text('Invoice', { underline: true });
-  doc.moveDown();
-  doc.fontSize(12).text(`Invoice #: ${invoiceNumber}`);
-  doc.text(`Order ID: ${orderId}`);
-  doc.text(`Status: ${status}`);
-  doc.moveDown();
-  doc.text('Bill To:');
-  if (contact_first_name || contact_last_name) {
-    doc.text(`${contact_first_name || ''} ${contact_last_name || ''}`.trim());
-  }
-  if (delivery_address) doc.text(delivery_address);
-  if (delivery_city || delivery_postal) {
-    doc.text(`${delivery_city || ''} ${delivery_postal || ''}`.trim());
-  }
-  if (delivery_country) doc.text(delivery_country);
-  if (contact_email) doc.text(`Email: ${contact_email}`);
-  if (contact_phone) doc.text(`Phone: ${contact_phone}`);
-  doc.moveDown();
+  // Header - Company Info
+  doc.fontSize(24).fillColor('#DEAD25').text('Famous Moms Bakery', 50, 50);
+  doc.fontSize(10).fillColor('#666666')
+    .text('Premium Artisan Breads', 50, 80)
+    .text('Email: info@famousmomsbakery.com', 50, 95)
+    .text('Phone: (555) 123-4567', 50, 110);
 
-  doc.text('Items:');
-  preparedItems.forEach((it) => {
-    doc.text(
-      `- ${it.type} | Qty: ${it.quantity} | Unit: ${it.unit_price.toFixed(2)} | Total: ${it.total.toFixed(2)}`
-    );
+  // Invoice Title and Number
+  doc.fontSize(20).fillColor('#000000').text('INVOICE', 400, 50, { align: 'right' });
+  doc.fontSize(10).fillColor('#666666')
+    .text(`Invoice #: ${invoiceNumber}`, 400, 80, { align: 'right' })
+    .text(`Date: ${invoiceDate}`, 400, 95, { align: 'right' })
+    .text(`Status: ${status.toUpperCase()}`, 400, 110, { align: 'right' });
+
+  // Line separator
+  doc.moveTo(50, 140).lineTo(550, 140).stroke('#DEAD25');
+
+  // Bill To Section
+  doc.fontSize(12).fillColor('#000000').text('BILL TO:', 50, 160);
+  doc.fontSize(10).fillColor('#333333');
+  
+  const customerName = `${contact_first_name || ''} ${contact_last_name || ''}`.trim();
+  if (customerName) doc.text(customerName, 50, 180);
+  if (delivery_address) doc.text(delivery_address, 50, 195);
+  
+  const cityPostal = `${delivery_city || ''} ${delivery_postal || ''}`.trim();
+  if (cityPostal) doc.text(cityPostal, 50, 210);
+  if (delivery_country) doc.text(delivery_country, 50, 225);
+  if (contact_email) doc.text(`Email: ${contact_email}`, 50, 240);
+  if (contact_phone) doc.text(`Phone: ${contact_phone}`, 50, 255);
+
+  // Items Table Header
+  const tableTop = 300;
+  doc.fontSize(10).fillColor('#FFFFFF');
+  doc.rect(50, tableTop, 500, 25).fill('#DEAD25');
+  
+  doc.fillColor('#FFFFFF')
+    .text('Item', 60, tableTop + 8)
+    .text('Type', 250, tableTop + 8)
+    .text('Qty', 350, tableTop + 8)
+    .text('Unit Price', 400, tableTop + 8)
+    .text('Total', 490, tableTop + 8, { align: 'right', width: 50 });
+
+  // Items
+  let yPosition = tableTop + 35;
+  doc.fillColor('#333333');
+  
+  preparedItems.forEach((item, index) => {
+    const itemName = item.name || 'Bread';
+    const bgColor = index % 2 === 0 ? '#F9FAFB' : '#FFFFFF';
+    
+    doc.rect(50, yPosition - 5, 500, 25).fill(bgColor);
+    doc.fillColor('#333333')
+      .text(itemName, 60, yPosition)
+      .text(item.type, 250, yPosition)
+      .text(item.quantity.toString(), 350, yPosition)
+      .text(`$${item.unit_price.toFixed(2)}`, 400, yPosition)
+      .text(`$${item.total.toFixed(2)}`, 490, yPosition, { align: 'right', width: 50 });
+    
+    yPosition += 25;
   });
-  doc.moveDown();
 
-  doc.text(`Subtotal: ${subtotalAmount.toFixed(2)}`);
-  doc.text(`Tax: ${taxAmount.toFixed(2)}`);
-  doc.text(`Delivery: ${deliveryFee.toFixed(2)}`);
-  doc.text(`Discount: ${discountAmount.toFixed(2)}`);
-  doc.text(`Total: ${(subtotalAmount + taxAmount + deliveryFee - discountAmount).toFixed(2)}`);
+  // Summary Section
+  yPosition += 20;
+  const summaryX = 350;
+  
+  doc.fontSize(10).fillColor('#666666');
+  doc.text('Subtotal:', summaryX, yPosition);
+  doc.text(`$${subtotalAmount.toFixed(2)}`, 490, yPosition, { align: 'right', width: 50 });
+  
+  yPosition += 20;
+  doc.text(`Tax (5%):`, summaryX, yPosition);
+  doc.text(`$${taxAmount.toFixed(2)}`, 490, yPosition, { align: 'right', width: 50 });
+  
+  yPosition += 20;
+  doc.text('Delivery Fee:', summaryX, yPosition);
+  doc.text(`$${deliveryFee.toFixed(2)}`, 490, yPosition, { align: 'right', width: 50 });
+  
+  if (discountAmount > 0) {
+    yPosition += 20;
+    doc.text('Discount:', summaryX, yPosition);
+    doc.text(`-$${discountAmount.toFixed(2)}`, 490, yPosition, { align: 'right', width: 50 });
+  }
+
+  // Total
+  yPosition += 25;
+  doc.rect(350, yPosition - 5, 200, 30).fill('#DEAD25');
+  doc.fontSize(12).fillColor('#FFFFFF')
+    .text('TOTAL:', summaryX + 10, yPosition + 5)
+    .text(`$${(subtotalAmount + taxAmount + deliveryFee - discountAmount).toFixed(2)}`, 
+          490, yPosition + 5, { align: 'right', width: 50 });
+
+  // Footer
+  doc.fontSize(9).fillColor('#999999')
+    .text('Thank you for your business!', 50, 700, { align: 'center', width: 500 })
+    .text('For questions about this invoice, please contact us at info@famousmomsbakery.com', 
+          50, 715, { align: 'center', width: 500 });
 
   doc.end();
 
   await new Promise((resolve, reject) => {
-    writeStream.on('finish', resolve);
-    writeStream.on('error', reject);
+    writeStream.on('finish', () => {
+      console.log(`✅ Invoice PDF generated: ${pdfPath}`);
+      resolve();
+    });
+    writeStream.on('error', (err) => {
+      console.error('❌ Error writing PDF:', err);
+      reject(err);
+    });
   });
 
   return { invoiceNumber, pdfUrl };
@@ -126,6 +203,18 @@ router.post('/', auth, async (req, res) => {
 
     const pool = await getPool();
 
+    // Fetch product names for the items
+    const inventoryIds = items.map(item => item.inventory_id);
+    const [inventoryItems] = await pool.query(
+      `SELECT id, name FROM inventory WHERE id IN (?)`,
+      [inventoryIds]
+    );
+    
+    const inventoryMap = {};
+    inventoryItems.forEach(inv => {
+      inventoryMap[inv.id] = inv.name;
+    });
+
     // Calculate totals
     let subtotalAmount = 0;
     const preparedItems = items.map((item) => {
@@ -135,6 +224,7 @@ router.post('/', auth, async (req, res) => {
       subtotalAmount += lineTotal;
       return {
         inventory_id: item.inventory_id,
+        name: inventoryMap[item.inventory_id] || 'Product',
         type: item.type,
         unit_price: unitPrice,
         quantity,

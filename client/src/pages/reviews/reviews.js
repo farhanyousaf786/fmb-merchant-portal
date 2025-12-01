@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../components/Toast/ToastContext';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../../context/NotificationContext';
 import Sidebar from '../sidebar/Sidebar';
 import './reviews.css';
 
 const Reviews = ({ user, onLogout }) => {
   const toast = useToast();
   const navigate = useNavigate();
+  const { markAsSeen } = useNotifications();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRateModal, setShowRateModal] = useState(false);
@@ -16,6 +18,7 @@ const Reviews = ({ user, onLogout }) => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    markAsSeen('reviews');
     fetchReviews();
   }, []);
 

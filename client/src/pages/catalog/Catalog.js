@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
-import FiltersBar from '../dashboard/components/FiltersBar/FiltersBar';
 import ProductModal from './components/ProductModal';
 import CartDialog from './components/CartDialog';
 import CheckoutDialog from './components/CheckoutDialog';
+import OrderSuccessDialog from './components/OrderSuccessDialog';
 import './Catalog.css';
 
 const Catalogs = ({ user, onLogout }) => {
@@ -14,6 +14,8 @@ const Catalogs = ({ user, onLogout }) => {
   const [cart, setCart] = useState([]); // { inventoryId, name, type, unitPrice, quantity }
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [createdOrderId, setCreatedOrderId] = useState(null);
 
   useEffect(() => {
     fetchInventory();
@@ -203,7 +205,8 @@ const Catalogs = ({ user, onLogout }) => {
         setCart([]);
         setIsCartOpen(false);
         setIsCheckoutOpen(false);
-        alert('Order placed successfully');
+        setCreatedOrderId(data.order.id);
+        setIsSuccessOpen(true);
       } else {
         alert(data.error || 'Failed to create order');
       }
@@ -220,15 +223,16 @@ const Catalogs = ({ user, onLogout }) => {
         <div className="catalog-container">
           <div className="catalog-header-row">
             <h1>Catalogs</h1>
-            <FiltersBar 
-              primaryAction={{
-                label: cartCount > 0 ? `Cart (${cartCount})` : 'Cart',
-                onClick: () => {
-                  if (cart.length === 0) return;
-                  setIsCartOpen(true);
-                }
+            <button 
+              className="primary-btn" 
+              onClick={() => {
+                if (cart.length === 0) return;
+                setIsCartOpen(true);
               }}
-            />
+              disabled={cart.length === 0}
+            >
+              {cartCount > 0 ? `Cart (${cartCount})` : 'Cart'}
+            </button>
           </div>
           
           <div className="products-grid">
@@ -349,6 +353,11 @@ const Catalogs = ({ user, onLogout }) => {
         user={user}
         onClose={() => setIsCheckoutOpen(false)}
         onPlaceOrder={handlePlaceOrder}
+      />
+      <OrderSuccessDialog
+        isOpen={isSuccessOpen}
+        orderId={createdOrderId}
+        onClose={() => setIsSuccessOpen(false)}
       />
     </div>
   );
