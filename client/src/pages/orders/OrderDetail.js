@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
 import './OrderDetail.css';
 
 const OrderDetail = ({ user, onLogout }) => {
   const { id: orderId } = useParams();
   const navigate = useNavigate();
+  const toast = useToast();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -32,16 +34,16 @@ const OrderDetail = ({ user, onLogout }) => {
         setNewStatus(data.order.status);
         setTrackingNumber(data.order.tracking_number || '');
       } else {
-        alert('Failed to load order details');
+        toast.error('Failed to load order details');
         navigate('/orders');
       }
     } catch (error) {
       console.error('Error fetching order:', error);
-      alert('Failed to load order details');
+      toast.error('Failed to load order details');
     } finally {
       setLoading(false);
     }
-  }, [orderId, navigate]);
+  }, [orderId, navigate, toast]);
 
   useEffect(() => {
     if (orderId) {
@@ -51,12 +53,12 @@ const OrderDetail = ({ user, onLogout }) => {
 
   const handleUpdateStatus = async () => {
     if (!newStatus) {
-      alert('Please select a status');
+      toast.error('Please select a status');
       return;
     }
 
     if (newStatus === 'declined' && !declineReason) {
-      alert('Please provide a reason for declining');
+      toast.error('Please provide a reason for declining');
       return;
     }
 
@@ -78,16 +80,16 @@ const OrderDetail = ({ user, onLogout }) => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        alert('Status updated successfully');
+        toast.success('Status updated successfully');
         setNotes('');
         setDeclineReason('');
         await fetchOrderDetails(); // Wait for refresh to complete
       } else {
-        alert(data.error || 'Failed to update status');
+        toast.error(data.error || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     } finally {
       setUpdating(false);
     }
@@ -252,12 +254,29 @@ const OrderDetail = ({ user, onLogout }) => {
                         <span className="tracking-text-large">{order.tracking_number}</span>
                       </div>
                     )}
+                    <div className="info-item">
+                      <label>Payment Status</label>
+                      <span className={`status-badge ${order.payment_status === 'paid' ? 'status-delivered' : 'status-pending'} large-badge`}>
+                        {order.payment_status === 'paid' ? '✓ Paid' : '⚠ Payment Required'}
+                      </span>
+                    </div>
+                    {order.stripe_payment_intent_id && (
+                      <div className="info-item">
+                        <label>Payment ID</label>
+                        <span className="tracking-text-large" style={{ fontSize: '12px' }}>{order.stripe_payment_intent_id}</span>
+                      </div>
+                    )}
                     {order.invoice_pdf_url && (
                       <div className="info-item">
                         <label>Invoice</label>
                         <button 
                           className="secondary-btn small-btn"
-                          onClick={() => window.open(order.invoice_pdf_url, '_blank', 'noreferrer')}
+                          onClick={() => {
+                            const invoiceUrl = order.invoice_pdf_url.startsWith('http') 
+                              ? order.invoice_pdf_url 
+                              : `${process.env.REACT_APP_API_URL}${order.invoice_pdf_url}`;
+                            window.open(invoiceUrl, '_blank', 'noreferrer');
+                          }}
                         >
                           Download Invoice
                         </button>

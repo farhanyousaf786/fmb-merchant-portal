@@ -22,7 +22,7 @@ const Dashboard = ({ user, onLogout }) => {
           <WelcomeBar user={user} />
           <div className="dashboard-header-row">
             <h1>Dashboard</h1>
-            <button className="primary-btn" onClick={handleNewOrder}>
+            <button className="start-new-order-btn" onClick={handleNewOrder}>
               New Order
             </button>
           </div>

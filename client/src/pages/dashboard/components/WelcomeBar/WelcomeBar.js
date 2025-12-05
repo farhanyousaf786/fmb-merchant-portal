@@ -6,6 +6,8 @@ const WelcomeBar = ({ user }) => {
   const navigate = useNavigate();
   const [newOrderCount, setNewOrderCount] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     if (newOrderCount > 0) {
@@ -20,7 +22,7 @@ const WelcomeBar = ({ user }) => {
   }, [newOrderCount]);
 
   useEffect(() => {
-    const checkNewOrders = async () => {
+    const checkNotifications = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const response = await fetch(`${process.env.REACT_APP_API_URL}/orders`, {
@@ -28,22 +30,47 @@ const WelcomeBar = ({ user }) => {
         });
         const data = await response.json();
         if (data.success) {
-          // Count orders in 'submitted' status
-          const count = data.orders.filter(order => order.status === 'submitted').length;
-          setNewOrderCount(count);
+          if (isAdmin) {
+            // Admin: Count orders in 'submitted' status
+            const count = data.orders.filter(order => order.status === 'submitted').length;
+            setNewOrderCount(count);
+            setNotificationMessage('orders need your attention');
+          } else {
+            // Merchant: Check for status changes
+            const lastSeenStatuses = JSON.parse(localStorage.getItem('lastSeenOrderStatuses') || '{}');
+            let changedCount = 0;
+            
+            data.orders.forEach(order => {
+              const lastStatus = lastSeenStatuses[order.id];
+              if (lastStatus && lastStatus !== order.status) {
+                changedCount++;
+              }
+            });
+            
+            setNewOrderCount(changedCount);
+            setNotificationMessage(changedCount === 1 ? 'order status updated' : 'order statuses updated');
+            
+            // Update last seen statuses
+            const newStatuses = {};
+            data.orders.forEach(order => {
+              newStatuses[order.id] = order.status;
+            });
+            localStorage.setItem('lastSeenOrderStatuses', JSON.stringify(newStatuses));
+          }
         }
       } catch (error) {
-        console.error('Error checking new orders:', error);
+        console.error('Error checking notifications:', error);
       }
     };
 
-    checkNewOrders();
-    // Optional: Poll every minute
-    const interval = setInterval(checkNewOrders, 60000);
+    checkNotifications();
+    // Poll every minute
+    const interval = setInterval(checkNotifications, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAdmin]);
 
   const handleNotificationClick = () => {
+    setNewOrderCount(0);
     navigate('/orders');
   };
 
@@ -89,7 +116,7 @@ const WelcomeBar = ({ user }) => {
             <div className="notification-popup" onClick={handleNotificationClick} style={{cursor: 'pointer'}}>
               <div className="notification-popup-content">
                 <span className="notification-count-badge">{newOrderCount}</span>
-                <span>orders need your attention</span>
+                <span>{notificationMessage}</span>
               </div>
             </div>
           )}

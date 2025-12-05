@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import './CheckoutDialog.css';
+import PaymentMethod from './PaymentMethod.js';
 
 const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
   const [form, setForm] = useState({
@@ -16,6 +17,9 @@ const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
 
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Helper to fill address fields
   const fillAddressForm = useCallback((addr) => {
@@ -112,17 +116,70 @@ const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validation checks
     if (!form.firstName || !form.lastName || !form.email || !form.phone) {
-      alert('Please fill in all required contact fields.');
+      alert('❌ Please fill in all required contact fields.');
       return;
     }
     if (!form.address || !form.city || !form.country) {
-      alert('Please provide delivery address, city, and country.');
+      alert('❌ Please provide delivery address, city, and country.');
       return;
     }
-    onPlaceOrder({ form, totals });
+    if (!selectedPaymentMethod) {
+      alert('❌ Please select a payment method.');
+      return;
+    }
+    
+    setIsProcessing(true);
+    
+    try {
+      // Create payment intent
+      const token = localStorage.getItem('authToken');
+      const intentResponse = await fetch(`${process.env.REACT_APP_API_URL}/payments/create-payment-intent`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          amount: totals.total,
+          currency: 'usd'
+        })
+      });
+      
+      const intentData = await intentResponse.json();
+      
+      if (!intentData.success) {
+        throw new Error(intentData.error || 'Failed to create payment intent');
+      }
+      
+      console.log('✅ Payment intent created:', intentData.paymentIntentId);
+      
+      // Place order with payment info
+      onPlaceOrder({ 
+        form, 
+        totals, 
+        paymentMethod: selectedPaymentMethod,
+        paymentIntentId: intentData.paymentIntentId
+      });
+      
+    } catch (error) {
+      console.error('❌ Payment error:', error);
+      alert(`❌ Payment failed: ${error.message}`);
+      setIsProcessing(false);
+    }
+  };
+
+  const handlePaymentMethodSelect = (method) => {
+    setSelectedPaymentMethod(method);
+  };
+
+  const handlePaymentComplete = (paymentInfo) => {
+    setPaymentCompleted(true);
+    // Payment info will be sent with the order
   };
 
   return (
@@ -300,9 +357,19 @@ const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
                 </table>
               </div>
 
+              <PaymentMethod 
+                onPaymentMethodSelect={handlePaymentMethodSelect}
+                selectedAmount={totals?.total || 0}
+                onPaymentComplete={handlePaymentComplete}
+              />
+
               <div className="checkout-actions">
-                <button type="submit" className="primary-btn">
-                  Place Order
+                <button 
+                  type="submit" 
+                  className="primary-btn"
+                  disabled={isProcessing || !selectedPaymentMethod}
+                >
+                  {isProcessing ? 'Processing Payment...' : `Place Order - $${totals.total.toFixed(2)}`}
                 </button>
               </div>
             </form>

@@ -79,6 +79,16 @@
   color: #a16207;
 }
 
+.status-pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-delivered {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 .orders-actions {
   display: flex;
   gap: 8px;

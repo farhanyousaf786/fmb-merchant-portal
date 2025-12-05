@@ -9,8 +9,10 @@ const Orders = ({ user, onLogout }) => {
   const navigate = useNavigate();
   const { markAsSeen } = useNotifications();
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({ date: 'All Time', status: 'All Status' });
 
   useEffect(() => {
     markAsSeen('orders');
@@ -26,6 +28,7 @@ const Orders = ({ user, onLogout }) => {
         console.log('📦 Received orders data:', data.orders);
         if (response.ok && data.success) {
           setOrders(data.orders || []);
+          setFilteredOrders(data.orders || []);
         } else {
           setError(data.error || 'Failed to load orders');
         }
@@ -39,6 +42,66 @@ const Orders = ({ user, onLogout }) => {
 
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (!orders.length) return;
+
+    let result = [...orders];
+
+    // Filter by Status
+    if (filters.status !== 'All Status') {
+      result = result.filter(order => 
+        order.status.toLowerCase() === filters.status.toLowerCase()
+      );
+    }
+
+    // Filter by Date
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (filters.date) {
+      case 'Today':
+        result = result.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= today;
+        });
+        break;
+      case 'Yesterday':
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        result = result.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= yesterday && orderDate < today;
+        });
+        break;
+      case 'Last 7 Days':
+        const last7Days = new Date(today);
+        last7Days.setDate(last7Days.getDate() - 7);
+        result = result.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= last7Days;
+        });
+        break;
+      case 'Last 30 Days':
+        const last30Days = new Date(today);
+        last30Days.setDate(last30Days.getDate() - 30);
+        result = result.filter(order => {
+          const orderDate = new Date(order.created_at);
+          return orderDate >= last30Days;
+        });
+        break;
+      case 'All Time':
+      default:
+        // No date filtering
+        break;
+    }
+
+    setFilteredOrders(result);
+  }, [filters, orders]);
+
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
+  };
 
   const goToCatalog = () => {
     navigate('/catalogs');
@@ -69,6 +132,20 @@ const Orders = ({ user, onLogout }) => {
       );
     }
 
+    if (filteredOrders.length === 0) {
+      return (
+        <div className="orders-empty-state">
+          <h2>No orders match your filters.</h2>
+          <button 
+            className="secondary-btn" 
+            onClick={() => setFilters({ date: 'All Time', status: 'All Status' })}
+          >
+            Clear Filters
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="orders-table-card">
         <table className="orders-table">
@@ -78,13 +155,14 @@ const Orders = ({ user, onLogout }) => {
               <th>Bread type</th>
               <th>Quantity</th>
               <th>Amounts</th>
+              <th>Payment</th>
               <th>ETA</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => {
+            {filteredOrders.map((order) => {
               const total = Number(order.total_amount || 0).toFixed(2);
               const qty = Number(order.total_quantity || 0);
               const eta = new Date(order.created_at).toLocaleDateString(undefined, {
@@ -118,6 +196,11 @@ const Orders = ({ user, onLogout }) => {
                   <td className="muted">Multiple</td>
                   <td>{qty}</td>
                   <td>${total}</td>
+                  <td>
+                    <span className={`status-pill ${order.payment_status === 'paid' ? 'status-delivered' : 'status-pending'}`}>
+                      {order.payment_status === 'paid' ? '✓ Paid' : 'Pending'}
+                    </span>
+                  </td>
                   <td>{eta}</td>
                   <td>
                     <span className={`status-pill status-${order.status}`}>
@@ -161,6 +244,7 @@ const Orders = ({ user, onLogout }) => {
                 label: 'New Order',
                 onClick: goToCatalog,
               }}
+              onFilterChange={handleFilterChange}
             />
           </div>
           {renderContent()}

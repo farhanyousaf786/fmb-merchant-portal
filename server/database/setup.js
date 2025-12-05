@@ -115,6 +115,62 @@ export async function setupDatabase() {
   
   console.log('✅ Orders table columns verified');
 
+  // 5. Create payment_methods table (store saved payment methods)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payment_methods (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      user_id INT NOT NULL,
+      stripe_payment_method_id VARCHAR(255) NOT NULL,
+      type ENUM('card', 'bank_account') NOT NULL,
+      brand VARCHAR(50),
+      last4 VARCHAR(4),
+      expiry_month INT,
+      expiry_year INT,
+      is_default BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT fk_payment_methods_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Payment methods table created/verified');
+
+  // 6. Create payments table (store payment transactions)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS payments (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      order_id INT NOT NULL,
+      stripe_payment_intent_id VARCHAR(255) NOT NULL,
+      stripe_payment_method_id VARCHAR(255),
+      amount DECIMAL(10, 2) NOT NULL,
+      currency VARCHAR(3) DEFAULT 'USD',
+      status ENUM('pending', 'processing', 'succeeded', 'failed', 'canceled', 'refunded') NOT NULL DEFAULT 'pending',
+      payment_method_type ENUM('card', 'bank_account') NOT NULL,
+      failure_reason TEXT,
+      receipt_url VARCHAR(500),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_payments_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `);
+  console.log('✅ Payments table created/verified');
+
+  // Add payment columns to orders table if they don't exist
+  if (!existingColumns.includes('payment_status')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending'`);
+    console.log('✅ Added payment_status column to orders');
+  }
+  
+  if (!existingColumns.includes('payment_method_id')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN payment_method_id INT`);
+    console.log('✅ Added payment_method_id column to orders');
+  }
+
+  if (!existingColumns.includes('stripe_payment_intent_id')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN stripe_payment_intent_id VARCHAR(255)`);
+    console.log('✅ Added stripe_payment_intent_id column to orders');
+  }
+
+  console.log('✅ Payment system schema created/verified');
+
   // 4. Create order_items table
   await pool.query(`
     CREATE TABLE IF NOT EXISTS order_items (

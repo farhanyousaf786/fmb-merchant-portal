@@ -1,0 +1,255 @@
+.payment-method-container {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.payment-method-container h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.payment-method-loading {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.payment-methods-list {
+  margin-bottom: 20px;
+}
+
+.payment-method-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.payment-method-item:hover {
+  border-color: #f59e0b;
+  background: #fff9f0;
+}
+
+.payment-method-item.selected {
+  border-color: #f59e0b;
+  background: #fff9f0;
+}
+
+.payment-method-item.default {
+  border-color: #10b981;
+}
+
+.method-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.card-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-brand {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: capitalize;
+}
+
+.card-number {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+  font-family: 'Courier New', monospace;
+}
+
+.card-expiry {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.method-type {
+  font-size: 16px;
+  font-weight: 500;
+  color: #111827;
+  text-transform: capitalize;
+}
+
+.default-badge {
+  background: #10b981;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.method-radio input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #f59e0b;
+}
+
+.payment-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.add-card-btn {
+  background: white;
+  color: #f59e0b;
+  border: 2px solid #f59e0b;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-card-btn:hover {
+  background: #f59e0b;
+  color: white;
+}
+
+.pay-now-btn {
+  background: #f59e0b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-left: auto;
+}
+
+.pay-now-btn:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.pay-now-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.new-card-form {
+  background: #f9fafb;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.new-card-form h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.card-form-mock {
+  background: white;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 20px;
+  border: 1px dashed #d1d5db;
+}
+
+.card-form-mock p {
+  margin: 0 0 8px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.card-form-mock ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  background: white;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.save-card-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.save-card-btn:hover {
+  background: #059669;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .payment-method-container {
+    padding: 16px;
+  }
+  
+  .payment-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .pay-now-btn {
+    margin-left: 0;
+    order: 2;
+  }
+  
+  .add-card-btn {
+    order: 1;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+  
+  .cancel-btn,
+  .save-card-btn {
+    width: 100%;
+  }
+}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../../components/Toast/ToastContext';
 import './OrderDetailModal.css';
 
 const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
+  const toast = useToast();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
@@ -33,11 +35,11 @@ const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
         setNewStatus(data.order.status);
         setTrackingNumber(data.order.tracking_number || '');
       } else {
-        alert('Failed to load order details');
+        toast.error('Failed to load order details');
       }
     } catch (error) {
       console.error('Error fetching order:', error);
-      alert('Failed to load order details');
+      toast.error('Failed to load order details');
     } finally {
       setLoading(false);
     }
@@ -45,12 +47,12 @@ const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
 
   const handleUpdateStatus = async () => {
     if (!newStatus) {
-      alert('Please select a status');
+      toast.error('Please select a status');
       return;
     }
 
     if (newStatus === 'declined' && !declineReason) {
-      alert('Please provide a reason for declining');
+      toast.error('Please provide a reason for declining');
       return;
     }
 
@@ -72,16 +74,16 @@ const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        alert('Status updated successfully');
+        toast.success('Status updated successfully');
         setNotes('');
         setDeclineReason('');
         fetchOrderDetails(); // Refresh
       } else {
-        alert(data.error || 'Failed to update status');
+        toast.error(data.error || 'Failed to update status');
       }
     } catch (error) {
       console.error('Error updating status:', error);
-      alert('Failed to update status');
+      toast.error('Failed to update status');
     } finally {
       setUpdating(false);
     }
@@ -89,7 +91,7 @@ const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
 
   const handleUpdateTracking = async () => {
     if (!trackingNumber.trim()) {
-      alert('Please enter a tracking number');
+      toast.error('Please enter a tracking number');
       return;
     }
 
@@ -110,15 +112,15 @@ const OrderDetailModal = ({ orderId, isOpen, onClose, userRole }) => {
 
       const data = await response.json();
       if (response.ok && data.success) {
-        alert('Tracking number updated successfully');
+        toast.success('Tracking number updated successfully');
         setNotes('');
         fetchOrderDetails(); // Refresh
       } else {
-        alert(data.error || 'Failed to update tracking number');
+        toast.error(data.error || 'Failed to update tracking number');
       }
     } catch (error) {
       console.error('Error updating tracking:', error);
-      alert('Failed to update tracking number');
+      toast.error('Failed to update tracking number');
     } finally {
       setUpdating(false);
     }

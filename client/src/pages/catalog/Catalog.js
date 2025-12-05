@@ -167,10 +167,15 @@ const Catalogs = ({ user, onLogout }) => {
 
   const cartTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  const handlePlaceOrder = async ({ form, totals }) => {
+  const handlePlaceOrder = async ({ form, totals, paymentMethod, paymentIntentId }) => {
     if (cart.length === 0) return;
     try {
       const token = localStorage.getItem('authToken');
+      
+      console.log('📦 Preparing order with payment info...');
+      console.log('Payment Method:', paymentMethod);
+      console.log('Payment Intent ID:', paymentIntentId);
+      
       const body = {
         status: 'submitted',
         contact_first_name: form.firstName,
@@ -187,8 +192,14 @@ const Catalogs = ({ user, onLogout }) => {
           type: item.type,
           unit_price: item.unitPrice,
           quantity: item.quantity
-        }))
+        })),
+        // Add payment information
+        payment_method_id: paymentMethod?.id,
+        stripe_payment_intent_id: paymentIntentId,
+        payment_status: 'paid'
       };
+
+      console.log('📤 Sending order to server:', body);
 
       const response = await fetch(`${process.env.REACT_APP_API_URL}/orders`, {
         method: 'POST',
@@ -200,19 +211,25 @@ const Catalogs = ({ user, onLogout }) => {
       });
 
       const data = await response.json();
+      
+      console.log('📥 Server response:', data);
+      
       if (response.ok && data.success) {
-        console.log('✅ Order created:', data.order);
+        console.log('✅ Order created successfully:', data.orderId);
         setCart([]);
         setIsCartOpen(false);
         setIsCheckoutOpen(false);
-        setCreatedOrderId(data.order.id);
+        setCreatedOrderId(data.orderId || data.order?.id);
         setIsSuccessOpen(true);
       } else {
-        alert(data.error || 'Failed to create order');
+        const errorMsg = data.error || data.details || 'Failed to create order';
+        console.error('❌ Server error:', errorMsg);
+        alert(`❌ Error: ${errorMsg}`);
       }
     } catch (error) {
-      console.error('❌ Error creating order:', error);
-      alert('Failed to create order');
+      console.error('❌ Error creating order:', error.message);
+      console.error('Stack:', error.stack);
+      alert(`❌ Failed to create order: ${error.message}`);
     }
   };
 

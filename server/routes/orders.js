@@ -191,6 +191,9 @@ router.post('/', auth, async (req, res) => {
       delivery_country,
       delivery_postal,
       notes,
+      payment_method_id,
+      stripe_payment_intent_id,
+      payment_status = 'pending',
     } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -249,8 +252,9 @@ router.post('/', auth, async (req, res) => {
         contact_first_name, contact_last_name, contact_email, contact_phone,
         delivery_address, delivery_city, delivery_country, delivery_postal,
         notes,
-        subtotal_amount, tax_amount, delivery_fee, discount_amount, total_amount
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        subtotal_amount, tax_amount, delivery_fee, discount_amount, total_amount,
+        payment_method_id, stripe_payment_intent_id, payment_status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         contact_first_name || null,
@@ -267,6 +271,9 @@ router.post('/', auth, async (req, res) => {
         deliveryFee,
         discountAmount,
         totalAmount,
+        payment_method_id || null,
+        stripe_payment_intent_id || null,
+        payment_status,
       ]
     );
 
@@ -310,6 +317,25 @@ router.post('/', auth, async (req, res) => {
       [invoiceNumber, pdfUrl, orderId]
     );
 
+    // Create payment record if payment info is provided
+    if (stripe_payment_intent_id && payment_status === 'paid') {
+      console.log(`💳 Creating payment record for order ${orderId}...`);
+      await pool.query(`
+        INSERT INTO payments 
+        (order_id, stripe_payment_intent_id, stripe_payment_method_id, amount, currency, status, payment_method_type, receipt_url)
+        VALUES (?, ?, ?, ?, ?, ?, 'card', ?)
+      `, [
+        orderId, 
+        stripe_payment_intent_id, 
+        payment_method_id || null, 
+        totalAmount, 
+        'USD', 
+        'succeeded',
+        `https://pay.stripe.com/receipt/mock/${stripe_payment_intent_id}`
+      ]);
+      console.log(`✅ Payment record created for order ${orderId}`);
+    }
+
     console.log(`✅ Order ${orderId} created for user ${userId}`);
 
     res.status(201).json({
@@ -351,6 +377,8 @@ router.get('/', auth, async (req, res) => {
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
+         o.payment_status,
+         o.stripe_payment_intent_id,
          COALESCE(SUM(oi.quantity), 0) AS total_quantity,
          GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
@@ -366,6 +394,8 @@ router.get('/', auth, async (req, res) => {
          o.total_amount,
          o.created_at,
          o.invoice_pdf_url,
+         o.payment_status,
+         o.stripe_payment_intent_id,
          COALESCE(SUM(oi.quantity), 0) AS total_quantity,
          GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
