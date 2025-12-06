@@ -108,6 +108,20 @@ export async function setupDatabase() {
     console.log('✅ Added tracking_number column');
   }
   
+  if (!existingColumns.includes('status')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN status ENUM('draft','submitted','processing','shipped','delivered','cancelled','declined') NOT NULL DEFAULT 'submitted'`);
+    console.log('✅ Added status column');
+  }
+  
+  if (!existingColumns.includes('updated_at')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP`);
+    console.log('✅ Added updated_at column');
+  }
+  
+  // Update any orders with null status to 'submitted'
+  await pool.query(`UPDATE orders SET status = 'submitted' WHERE status IS NULL OR status = ''`);
+  console.log('✅ Updated orders with null status');
+  
   if (!existingColumns.includes('decline_reason')) {
     await pool.query(`ALTER TABLE orders ADD COLUMN decline_reason TEXT`);
     console.log('✅ Added decline_reason column');

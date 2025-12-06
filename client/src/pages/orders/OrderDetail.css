@@ -499,6 +499,76 @@
     color: #991b1b;
 }
 
+/* Cancel Order Styles */
+.cancel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.timer-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 6px;
+    margin-bottom: 4px;
+}
+
+.timer-label {
+    font-size: 11px;
+    color: #92400e;
+    font-weight: 500;
+}
+
+.timer-value {
+    font-size: 14px;
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.danger-btn {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.danger-btn:hover:not(:disabled) {
+    background: #b91c1c;
+    transform: translateY(-1px);
+}
+
+.danger-btn:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.no-cancel-text {
+    color: #6b7280;
+    font-size: 13px;
+    font-style: italic;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .main-content {

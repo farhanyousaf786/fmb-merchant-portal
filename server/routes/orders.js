@@ -379,11 +379,19 @@ router.get('/', auth, async (req, res) => {
          o.invoice_pdf_url,
          o.payment_status,
          o.stripe_payment_intent_id,
+         o.contact_first_name,
+         o.contact_last_name,
+         o.contact_email,
+         o.status,
+         o.tracking_number,
+         u.business_name,
+         u.role,
          COALESCE(SUM(oi.quantity), 0) AS total_quantity,
-         GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
+         GROUP_CONCAT(DISTINCT CONCAT(oi.quantity, 'x ', i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
        LEFT JOIN order_items oi ON oi.order_id = o.id
        LEFT JOIN inventory i ON oi.inventory_id = i.id
+       LEFT JOIN users u ON o.user_id = u.id
        GROUP BY o.id
        ORDER BY o.created_at DESC`;
       params = [];
@@ -396,11 +404,19 @@ router.get('/', auth, async (req, res) => {
          o.invoice_pdf_url,
          o.payment_status,
          o.stripe_payment_intent_id,
+         o.contact_first_name,
+         o.contact_last_name,
+         o.contact_email,
+         o.status,
+         o.tracking_number,
+         u.business_name,
+         u.role,
          COALESCE(SUM(oi.quantity), 0) AS total_quantity,
-         GROUP_CONCAT(DISTINCT CONCAT(i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
+         GROUP_CONCAT(DISTINCT CONCAT(oi.quantity, 'x ', i.name, ' (', oi.type, ')') SEPARATOR ', ') AS item_names
        FROM orders o
        LEFT JOIN order_items oi ON oi.order_id = o.id
        LEFT JOIN inventory i ON oi.inventory_id = i.id
+       LEFT JOIN users u ON o.user_id = u.id
        WHERE o.user_id = ?
        GROUP BY o.id
        ORDER BY o.created_at DESC`;
@@ -409,23 +425,11 @@ router.get('/', auth, async (req, res) => {
 
     const [orders] = await pool.query(query, params);
     
-    // Get current status and tracking number for each order from order_tracking
-    for (let order of orders) {
-      const [tracking] = await pool.query(
-        `SELECT status, tracking_number FROM order_tracking 
-         WHERE order_id = ? 
-         ORDER BY created_at DESC 
-         LIMIT 1`,
-        [order.id]
-      );
-      if (tracking.length > 0) {
-        order.status = tracking[0].status;
-        order.tracking_number = tracking[0].tracking_number;
-      } else {
-        order.status = 'draft';
-        order.tracking_number = null;
-      }
-    }
+    console.log('🔍 Orders list raw data for order 23:', orders.find(o => o.id == 23));
+    console.log('🔍 All orders with their statuses:', orders.map(o => ({ id: o.id, status: o.status })));
+    
+    // Status and tracking_number are already included in the main query
+    // No need to override with old data from order_tracking table
     
     console.log('📊 Sample order data:', orders[0]);
 
@@ -445,26 +449,172 @@ router.get('/:id', auth, async (req, res) => {
     const userRole = req.user.role;
     const pool = await getPool();
 
-    // Check if order exists and user has access
-    const [orders] = await pool.query('SELECT user_id FROM orders WHERE id = ?', [id]);
+    console.log('🔍 Looking for order:', { id, userId, userRole });
+
+    // Get the complete order data directly from database
+    const [orderData] = await pool.query('SELECT * FROM orders WHERE id = ?', [id]);
+    console.log('🔍 Raw database data:', orderData[0]);
     
-    if (orders.length === 0) {
+    if (orderData.length === 0) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
+    const order = orderData[0];
+
     // Merchants can only see their own orders
-    if (userRole !== 'admin' && orders[0].user_id !== userId) {
+    if (userRole !== 'admin' && order.user_id !== userId) {
       return res.status(403).json({ success: false, error: 'Access denied' });
     }
 
-    // Import Order model dynamically
-    const Order = (await import('../models/Order.js')).default;
-    const orderDetails = await Order.findById(id);
+    // Try to get order items (might fail if table doesn't exist)
+    let items = [];
+    try {
+      const [itemsData] = await pool.query(
+        'SELECT * FROM order_items WHERE order_id = ?',
+        [id]
+      );
+      items = itemsData;
+    } catch (error) {
+      console.log('⚠️ order_items table not accessible:', error.message);
+    }
+
+    // Try to get tracking history (might fail if table doesn't exist)
+    let trackingHistory = [];
+    try {
+      const [trackingData] = await pool.query(
+        'SELECT * FROM order_tracking WHERE order_id = ? ORDER BY updated_at DESC',
+        [id]
+      );
+      trackingHistory = trackingData;
+    } catch (error) {
+      console.log('⚠️ order_tracking table not accessible:', error.message);
+    }
+
+    const orderDetails = {
+      ...order,
+      items,
+      tracking_history: trackingHistory
+    };
+    
+    console.log('🔍 Final order data being sent:', { 
+      id: orderDetails.id, 
+      status: orderDetails.status,
+      hasItems: items.length > 0,
+      hasTracking: trackingHistory.length > 0
+    });
 
     res.json({ success: true, order: orderDetails });
   } catch (error) {
     console.error('❌ Error fetching order details:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch order details' });
+  }
+});
+
+// Cancel order (merchant only - within 10 minutes)
+router.put('/:id/cancel', auth, async (req, res) => {
+  console.log('🔄 Cancel order request received');
+  console.log('🔍 Request details:', { 
+    params: req.params, 
+    body: req.body,
+    headers: req.headers.authorization ? 'Token present' : 'No token'
+  });
+  
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    console.log('🔍 User info:', { userId, userRole, orderId: id });
+
+    // Only merchants can cancel their own orders (admins can use status update endpoint)
+    if (userRole !== 'merchant' && userRole !== 'admin') {
+      console.log('❌ Invalid role for cancellation:', userRole);
+      return res.status(403).json({ success: false, error: 'Merchant access required' });
+    }
+
+    const pool = await getPool();
+    
+    // Get order details
+    const [orderRows] = await pool.query(
+      'SELECT * FROM orders WHERE id = ?',
+      [parseInt(id)]
+    );
+
+    if (orderRows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const order = orderRows[0];
+    console.log('🔍 Order data for cancellation:', { 
+      id: parseInt(id), 
+      status: order.status, 
+      userId, 
+      userRole, 
+      orderUserId: order.user_id,
+      rawOrder: order 
+    });
+
+    // For merchants, check if they own the order
+    if (userRole === 'merchant' && order.user_id !== userId) {
+      console.log('❌ User does not own this order:', { orderUserId: order.user_id, requestUserId: userId });
+      return res.status(403).json({ success: false, error: 'You can only cancel your own orders' });
+    }
+
+    // Check if order can be cancelled
+    const validStatusesForCancel = ['submitted', 'processing'];
+    if (!order.status || !validStatusesForCancel.includes(order.status)) {
+      console.log('❌ Invalid status for cancellation:', order.status);
+      return res.status(400).json({ 
+        success: false, 
+        error: `Cannot cancel order with status: ${order.status || 'undefined'}` 
+      });
+    }
+
+    // Check 10-minute time limit for merchants (not admins)
+    if (userRole === 'merchant') {
+      const orderTime = new Date(order.created_at);
+      const now = new Date();
+      const diffMinutes = (now - orderTime) / (1000 * 60);
+      
+      if (diffMinutes > 10) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Order can only be cancelled within 10 minutes of placement' 
+        });
+      }
+    }
+
+    // Update order status to cancelled
+    await pool.query(
+      'UPDATE orders SET status = ?, notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      ['cancelled', reason || `Order cancelled by ${userRole}`, id]
+    );
+
+    // Also update tracking history for consistency
+    try {
+      await pool.query(
+        'INSERT INTO order_tracking (order_id, status, notes, updated_by) VALUES (?, ?, ?, ?)',
+        [id, 'cancelled', reason || `Order cancelled by ${userRole}`, userId]
+      );
+      console.log(`✅ Tracking history updated for order ${id}`);
+    } catch (error) {
+      console.log('⚠️ Could not update tracking history:', error.message);
+      // Don't fail the cancellation if tracking update fails
+    }
+
+    console.log(`✅ Order ${id} cancelled successfully by ${userRole}`);
+    res.json({ 
+      success: true, 
+      message: 'Order cancelled successfully' 
+    });
+
+  } catch (error) {
+    console.error('❌ Error cancelling order:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to cancel order' 
+    });
   }
 });
 
@@ -488,19 +638,59 @@ router.put('/:id/status', auth, async (req, res) => {
 
     const Order = (await import('../models/Order.js')).default;
     
-    // Get current tracking number if not provided
+    // Get current order to check status transition
     const pool = await getPool();
-    const [currentOrder] = await pool.query('SELECT tracking_number FROM orders WHERE id = ?', [id]);
-    const currentTrackingNumber = currentOrder[0]?.tracking_number || null;
+    const [currentOrder] = await pool.query('SELECT * FROM orders WHERE id = ?', [id]);
     
-    await Order.updateStatus({
-      orderId: id,
-      status,
-      trackingNumber: currentTrackingNumber,
-      notes,
-      updatedBy: userId,
-      declineReason: status === 'declined' ? decline_reason : null
-    });
+    if (currentOrder.length === 0) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    const currentStatus = currentOrder[0].status;
+    
+    // Log status change for audit purposes
+    if (currentStatus !== status) {
+      console.log(`📋 Admin changing order ${id} status from ${currentStatus} to ${status}`);
+      
+      // If admin moves from submitted to processing, merchants can no longer cancel
+      if (currentStatus === 'submitted' && (status === 'processing' || status === 'shipped')) {
+        console.log(`⏰ Order ${id} processing started - merchant cancellation window closed`);
+      }
+    }
+    
+    // Update order status directly in database
+    const updateFields = ['status = ?', 'updated_at = CURRENT_TIMESTAMP'];
+    const updateValues = [status];
+    
+    if (notes) {
+      updateFields.push('notes = ?');
+      updateValues.push(notes);
+    }
+    
+    if (status === 'declined' && decline_reason) {
+      updateFields.push('decline_reason = ?');
+      updateValues.push(decline_reason);
+    }
+    
+    updateValues.push(id);
+    
+    await pool.query(
+      `UPDATE orders SET ${updateFields.join(', ')} WHERE id = ?`,
+      updateValues
+    );
+    
+    // Also update tracking history for consistency
+    try {
+      await pool.query(
+        'INSERT INTO order_tracking (order_id, status, notes, updated_by) VALUES (?, ?, ?, ?)',
+        [id, status, notes || `Status changed to ${status}`, userId]
+      );
+      console.log(`✅ Tracking history updated for order ${id}`);
+    } catch (error) {
+      console.log('⚠️ Could not update tracking history:', error.message);
+    }
+
+    console.log(`✅ Order ${id} status updated to ${status} by admin`);
 
     res.json({ success: true, message: 'Order status updated successfully' });
   } catch (error) {

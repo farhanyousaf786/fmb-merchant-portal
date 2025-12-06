@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../context/NotificationContext';
 import Sidebar from '../sidebar/Sidebar';
-import FiltersBar from '../dashboard/components/FiltersBar/FiltersBar';
 import './Orders.css';
 
 const Orders = ({ user, onLogout }) => {
@@ -12,7 +11,11 @@ const Orders = ({ user, onLogout }) => {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({ date: 'All Time', status: 'All Status' });
+  const [dateFilter, setDateFilter] = useState('all'); // 'all', 'today', 'yesterday', 'custom'
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'submitted', 'processing', 'shipped', 'delivered', 'cancelled'
+  const [hoveredItem, setHoveredItem] = useState(null);
 
   useEffect(() => {
     markAsSeen('orders');
@@ -43,65 +46,49 @@ const Orders = ({ user, onLogout }) => {
     fetchOrders();
   }, []);
 
+  // Apply date filtering
   useEffect(() => {
     if (!orders.length) return;
 
-    let result = [...orders];
-
-    // Filter by Status
-    if (filters.status !== 'All Status') {
-      result = result.filter(order => 
-        order.status.toLowerCase() === filters.status.toLowerCase()
-      );
-    }
-
-    // Filter by Date
+    let filtered = [...orders];
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    switch (filters.date) {
-      case 'Today':
-        result = result.filter(order => {
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    switch (dateFilter) {
+      case 'today':
+        filtered = filtered.filter(order => {
           const orderDate = new Date(order.created_at);
           return orderDate >= today;
         });
         break;
-      case 'Yesterday':
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        result = result.filter(order => {
+      case 'yesterday':
+        filtered = filtered.filter(order => {
           const orderDate = new Date(order.created_at);
           return orderDate >= yesterday && orderDate < today;
         });
         break;
-      case 'Last 7 Days':
-        const last7Days = new Date(today);
-        last7Days.setDate(last7Days.getDate() - 7);
-        result = result.filter(order => {
-          const orderDate = new Date(order.created_at);
-          return orderDate >= last7Days;
-        });
+      case 'custom':
+        if (startDate && endDate) {
+          filtered = filtered.filter(order => {
+            const orderDate = new Date(order.created_at);
+            return orderDate >= new Date(startDate) && orderDate <= new Date(endDate + ' 23:59:59');
+          });
+        }
         break;
-      case 'Last 30 Days':
-        const last30Days = new Date(today);
-        last30Days.setDate(last30Days.getDate() - 30);
-        result = result.filter(order => {
-          const orderDate = new Date(order.created_at);
-          return orderDate >= last30Days;
-        });
-        break;
-      case 'All Time':
       default:
-        // No date filtering
+        // 'all' - no filtering
         break;
     }
 
-    setFilteredOrders(result);
-  }, [filters, orders]);
+    // Apply status filtering
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(order => order.status === statusFilter);
+    }
 
-  const handleFilterChange = (newFilters) => {
-    setFilters(newFilters);
-  };
+    setFilteredOrders(filtered);
+  }, [orders, dateFilter, startDate, endDate, statusFilter]);
 
   const goToCatalog = () => {
     navigate('/catalogs');
@@ -138,7 +125,12 @@ const Orders = ({ user, onLogout }) => {
           <h2>No orders match your filters.</h2>
           <button 
             className="secondary-btn" 
-            onClick={() => setFilters({ date: 'All Time', status: 'All Status' })}
+            onClick={() => {
+              setDateFilter('all');
+              setStatusFilter('all');
+              setStartDate('');
+              setEndDate('');
+            }}
           >
             Clear Filters
           </button>
@@ -152,24 +144,21 @@ const Orders = ({ user, onLogout }) => {
           <thead>
             <tr>
               <th>Order ID</th>
-              <th>Bread type</th>
-              <th>Quantity</th>
-              <th>Amounts</th>
+              <th>Customer</th>
+              <th>Items</th>
               <th>Payment</th>
-              <th>ETA</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {filteredOrders.map((order) => {
-              const total = Number(order.total_amount || 0).toFixed(2);
               const qty = Number(order.total_quantity || 0);
-              const eta = new Date(order.created_at).toLocaleDateString(undefined, {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-              });
+              const shopName = order.business_name || 'Shop';
+              const contactName = order.contact_first_name && order.contact_last_name 
+                ? `${order.contact_first_name} ${order.contact_last_name}`
+                : order.contact_first_name || 'Contact';
+              const userRole = order.role ? order.role.charAt(0).toUpperCase() + order.role.slice(1) : 'User';
 
               return (
                 <tr 
@@ -193,15 +182,86 @@ const Orders = ({ user, onLogout }) => {
                       #{String(order.id).padStart(5, '0')}
                     </div>
                   </td>
-                  <td className="muted">Multiple</td>
-                  <td>{qty}</td>
-                  <td>${total}</td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <span style={{ fontWeight: '500', color: '#1f2937' }}>{shopName}</span>
+                      <span style={{ fontSize: '11px', color: '#d97706', fontWeight: '500' }}>{userRole}</span>
+                    </div>
+                  </td>
+                  <td className="muted" style={{ position: 'relative' }}>
+                    {(() => {
+                      const itemNames = order.item_names || '';
+                      if (!itemNames) return 'No items';
+                      
+                      // The server now sends the correct format: "1x Raisin Bread (sliced), 2x Raisin Bread (unsliced)"
+                      const displayText = itemNames.length > 40 ? itemNames.substring(0, 40) + '...' : itemNames;
+                      const isTruncated = itemNames.length > 40;
+                      
+                      return (
+                        <div>
+                          <span 
+                            onMouseEnter={() => isTruncated && setHoveredItem(order.id)}
+                            onMouseLeave={() => setHoveredItem(null)}
+                            style={{ 
+                              cursor: isTruncated ? 'help' : 'default',
+                              display: 'inline-block',
+                              maxWidth: '100%',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {displayText}
+                          </span>
+                          
+                          {hoveredItem === order.id && isTruncated && (
+                            <div 
+                              className="custom-tooltip"
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: '0',
+                                right: '0',
+                                zIndex: 1000,
+                                backgroundColor: '#1f2937',
+                                color: 'white',
+                                padding: '8px 12px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                lineHeight: '1.4',
+                                whiteSpace: 'normal',
+                                wordWrap: 'break-word',
+                                maxWidth: '300px',
+                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                marginTop: '4px',
+                                border: '1px solid #374151'
+                              }}
+                            >
+                              {itemNames}
+                              <div 
+                                style={{
+                                  position: 'absolute',
+                                  top: '-4px',
+                                  left: '20px',
+                                  width: '8px',
+                                  height: '8px',
+                                  backgroundColor: '#1f2937',
+                                  transform: 'rotate(45deg)',
+                                  borderLeft: '1px solid #374151',
+                                  borderTop: '1px solid #374151'
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </td>
                   <td>
                     <span className={`status-pill ${order.payment_status === 'paid' ? 'status-delivered' : 'status-pending'}`}>
                       {order.payment_status === 'paid' ? '✓ Paid' : 'Pending'}
                     </span>
                   </td>
-                  <td>{eta}</td>
                   <td>
                     <span className={`status-pill status-${order.status}`}>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -239,13 +299,94 @@ const Orders = ({ user, onLogout }) => {
         <div className="orders-container">
           <div className="orders-header-row">
             <h1>Orders</h1>
-            <FiltersBar
-              primaryAction={{
-                label: 'New Order',
-                onClick: goToCatalog,
-              }}
-              onFilterChange={handleFilterChange}
-            />
+            <div className="date-filter-controls">
+              <select 
+                value={dateFilter} 
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{ 
+                  padding: '8px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  marginRight: '8px',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="yesterday">Yesterday</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              
+              <select 
+                value={statusFilter} 
+                onChange={(e) => setStatusFilter(e.target.value)}
+                style={{ 
+                  padding: '8px 12px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '6px',
+                  marginRight: '8px',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="all">All Status</option>
+                <option value="submitted">Submitted</option>
+                <option value="processing">Preparing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              
+              {dateFilter === 'custom' && (
+                <div className="custom-date-range" style={{ 
+                  display: 'flex', 
+                  gap: '8px', 
+                  alignItems: 'center', 
+                  marginRight: '12px',
+                  padding: '4px',
+                  backgroundColor: '#f9fafb',
+                  borderRadius: '8px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    style={{ 
+                      padding: '6px 10px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      backgroundColor: 'white',
+                      minWidth: '120px'
+                    }}
+                  />
+                  <span style={{ 
+                    color: '#6b7280', 
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}>
+                    to
+                  </span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    style={{ 
+                      padding: '6px 10px',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '6px',
+                      fontSize: '13px',
+                      backgroundColor: 'white',
+                      minWidth: '120px'
+                    }}
+                  />
+                </div>
+              )}
+              
+              <button className="start-new-order-btn" onClick={goToCatalog}>
+                New Order
+              </button>
+            </div>
           </div>
           {renderContent()}
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
+import CancelConfirmDialog from '../../components/CancelConfirmDialog/CancelConfirmDialog';
 import './OrderDetail.css';
 
 const OrderDetail = ({ user, onLogout }) => {
@@ -19,31 +20,145 @@ const OrderDetail = ({ user, onLogout }) => {
   const [declineReason, setDeclineReason] = useState('');
 
   const isAdmin = user?.role === 'admin';
+  const [timeLeft, setTimeLeft] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
+  // Calculate time left for cancellation
+  const calculateTimeLeft = useCallback(() => {
+    if (!order) return null;
+    
+    const orderTime = new Date(order.created_at);
+    const now = new Date();
+    const diffMs = now - orderTime;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const timeLeftMinutes = Math.max(0, 10 - diffMinutes);
+    
+    return timeLeftMinutes > 0 ? timeLeftMinutes : null;
+  }, [order]);
+
+  // Update timer every second
+  useEffect(() => {
+    if (!order) return;
+    
+    const updateTimeLeft = () => {
+      setTimeLeft(calculateTimeLeft());
+    };
+    
+    updateTimeLeft();
+    const interval = setInterval(updateTimeLeft, 1000);
+    
+    return () => clearInterval(interval);
+  }, [order, calculateTimeLeft]);
+
+  // Check if order can be cancelled
+  const canCancelOrder = () => {
+    console.log('🔍 Checking cancellation:', { 
+      hasOrder: !!order, 
+      isAdmin, 
+      status: order?.status, 
+      timeLeft,
+      userRole: user?.role 
+    });
+    
+    if (!order || isAdmin) return false;
+    
+    const validStatuses = ['submitted', 'processing'];
+    if (!validStatuses.includes(order.status)) {
+      console.log('❌ Invalid status:', order.status);
+      return false;
+    }
+    
+    if (timeLeft === null) {
+      console.log('❌ Time expired');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleCancelOrder = async (reason) => {
+    if (!canCancelOrder()) return;
+    
+    console.log('🚀 Starting cancellation:', { orderId, reason, user: user });
+    
+    try {
+      setCancelling(true);
+      const token = localStorage.getItem('authToken');
+      
+      const requestBody = { reason: reason || 'Customer requested cancellation' };
+      console.log('📤 Sending request:', { url: `${process.env.REACT_APP_API_URL}/orders/${orderId}/cancel`, body: requestBody });
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/orders/${orderId}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      const data = await response.json();
+      console.log('📥 Response received:', { status: response.status, data });
+      
+      if (response.ok && data.success) {
+        toast.success('Order cancelled successfully');
+        setShowCancelDialog(false);
+        
+        // Force complete page reload to ensure fresh data
+        console.log('� Reloading page to get fresh data...');
+        window.location.reload();
+      } else {
+        toast.error(data.error || 'Failed to cancel order');
+      }
+    } catch (error) {
+      console.error('❌ Error cancelling order:', error);
+      toast.error('Failed to cancel order');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const fetchOrderDetails = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('authToken');
+      console.log('🔄 Fetching order details for:', orderId);
+      
       const response = await fetch(`${process.env.REACT_APP_API_URL}/orders/${orderId}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      console.log('📡 API Response status:', response.status);
       const data = await response.json();
+      console.log('📦 Full API Response:', data);
+      
       if (response.ok && data.success) {
         console.log('📦 Fetched order data:', data.order);
+        console.log('🔍 Order status from API:', data.order.status);
+        console.log('🔍 Previous order status:', order?.status);
+        
+        // Force update with new data
         setOrder(data.order);
         setNewStatus(data.order.status);
         setTrackingNumber(data.order.tracking_number || '');
+        
+        // Log the current state after update
+        setTimeout(() => {
+          console.log('� State after update - Order status:', order?.status);
+        }, 100);
       } else {
+        console.error('❌ API Error:', data);
         toast.error('Failed to load order details');
         navigate('/orders');
       }
     } catch (error) {
-      console.error('Error fetching order:', error);
+      console.error('❌ Network Error:', error);
       toast.error('Failed to load order details');
     } finally {
       setLoading(false);
     }
-  }, [orderId, navigate, toast]);
+  }, [orderId, navigate, toast, order?.status]);
 
   useEffect(() => {
     if (orderId) {
@@ -164,13 +279,11 @@ const OrderDetail = ({ user, onLogout }) => {
                       <h4>Update Status</h4>
                       <div className="control-row">
                         <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
-                          <option value="draft">Draft</option>
                           <option value="submitted">Submitted</option>
-                          <option value="processing">Processing</option>
+                          <option value="processing">Preparing</option>
                           <option value="shipped">Shipped</option>
                           <option value="delivered">Delivered</option>
                           <option value="cancelled">Cancelled</option>
-                          <option value="declined">Declined</option>
                         </select>
                         <button
                           className="primary-btn"
@@ -282,6 +395,30 @@ const OrderDetail = ({ user, onLogout }) => {
                         </button>
                       </div>
                     )}
+                    
+                    {/* Cancel Order Section for Merchants */}
+                    {!isAdmin && (
+                      <div className="info-item">
+                        <label>Actions</label>
+                        {canCancelOrder() ? (
+                          <div className="cancel-section">
+                            <button 
+                              className="danger-btn small-btn"
+                              onClick={() => setShowCancelDialog(true)}
+                              disabled={cancelling}
+                            >
+                              {cancelling ? 'Cancelling...' : 'Cancel Order'}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="no-cancel-text">
+                            {order?.status === 'cancelled' ? 'Order Cancelled' : 
+                             order?.status === 'processing' || order?.status === 'shipped' || order?.status === 'delivered' ? 'Order in Progress' :
+                             'Cancellation window expired'}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </section>
 
@@ -378,6 +515,15 @@ const OrderDetail = ({ user, onLogout }) => {
           )}
         </div>
       </div>
+      
+      {/* Cancel Confirmation Dialog */}
+      <CancelConfirmDialog
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={handleCancelOrder}
+        timeLeft={timeLeft}
+        loading={cancelling}
+      />
     </div>
   );
 };

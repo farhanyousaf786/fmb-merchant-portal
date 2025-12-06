@@ -1,7 +1,7 @@
 import React from 'react';
 import './CartDialog.css';
 
-const CartDialog = ({ isOpen, cart, cartTotal, onClose, onCheckout }) => {
+const CartDialog = ({ isOpen, cart, cartTotal, onClose, onCheckout, onUpdateCart }) => {
   if (!isOpen) return null;
 
   const hasItems = cart && cart.length > 0;
@@ -23,6 +23,7 @@ const CartDialog = ({ isOpen, cart, cartTotal, onClose, onCheckout }) => {
                   <th>Unit Price</th>
                   <th>Quantity</th>
                   <th>Total</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -31,12 +32,38 @@ const CartDialog = ({ isOpen, cart, cartTotal, onClose, onCheckout }) => {
                     <td>{item.name}</td>
                     <td>{item.type === 'sliced' ? 'Sliced' : 'Unsliced'}</td>
                     <td>${item.unitPrice.toFixed(2)}</td>
-                    <td>{item.quantity}</td>
+                    <td>
+                      <div className="quantity-controls-inline">
+                        <button 
+                          className="quantity-btn-small minus"
+                          onClick={() => onUpdateCart(item.inventoryId, item.type, -1)}
+                          disabled={item.quantity <= 1}
+                        >
+                          −
+                        </button>
+                        <span className="quantity-display">{item.quantity}</span>
+                        <button 
+                          className="quantity-btn-small plus"
+                          onClick={() => onUpdateCart(item.inventoryId, item.type, 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </td>
                     <td>${(item.unitPrice * item.quantity).toFixed(2)}</td>
+                    <td>
+                      <button 
+                        className="remove-btn"
+                        onClick={() => onUpdateCart(item.inventoryId, item.type, 0)}
+                        title="Remove item"
+                      >
+                        🗑️
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 <tr className="order-summary-total-row">
-                  <td colSpan="4" className="label">Total</td>
+                  <td colSpan="5" className="label">Total</td>
                   <td className="value">${cartTotal.toFixed(2)}</td>
                 </tr>
               </tbody>

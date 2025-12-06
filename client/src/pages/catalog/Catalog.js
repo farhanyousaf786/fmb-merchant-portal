@@ -42,8 +42,8 @@ const Catalogs = ({ user, onLogout }) => {
           image: item.image || 'https://images.unsplash.com/photo-1549931319-a545dcf3bc73?w=400&h=300&fit=crop&auto=format',
           description: item.description,
           note: item.note,
-          sliced: { quantity: 0, selected: false },
-          unsliced: { quantity: 0, selected: false }
+          sliced: { quantity: 0 },
+          unsliced: { quantity: 0 }
         }));
         
         setProducts(dbItems);
@@ -94,20 +94,6 @@ const Catalogs = ({ user, onLogout }) => {
     }));
   };
 
-  const toggleSelection = (productId, type) => {
-    setProducts(prev => prev.map(p => {
-      if (p.id !== productId) return p;
-      const key = type === 'sliced' ? 'sliced' : 'unsliced';
-      return {
-        ...p,
-        [key]: {
-          ...p[key],
-          selected: !p[key].selected
-        }
-      };
-    }));
-  };
-
   const addToOrder = (productId) => {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -116,7 +102,7 @@ const Catalogs = ({ user, onLogout }) => {
 
     ['sliced', 'unsliced'].forEach(type => {
       const opt = product[type];
-      if (opt.selected && opt.quantity > 0) {
+      if (opt.quantity > 0) {
         newCartItems.push({
           inventoryId: product.id,
           name: product.name,
@@ -128,7 +114,7 @@ const Catalogs = ({ user, onLogout }) => {
     });
 
     if (newCartItems.length === 0) {
-      toast.warning('Please select Sliced or Unsliced and set a quantity before adding to cart.');
+      toast.warning('Please set a quantity for Sliced or Unsliced before adding to cart.');
       return;
     }
 
@@ -150,22 +136,52 @@ const Catalogs = ({ user, onLogout }) => {
       return updated;
     });
 
-    // Reset selections for this product
+    // Reset quantities for this product
     setProducts(prevProducts => prevProducts.map(p => {
       if (p.id !== productId) return p;
       return {
         ...p,
-        sliced: { quantity: 0, selected: false },
-        unsliced: { quantity: 0, selected: false }
+        sliced: { quantity: 0 },
+        unsliced: { quantity: 0 }
       };
     }));
 
-    toast.success('Order added to cart');
+    toast.success('Items added to cart');
   };
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   const cartTotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+
+  const handleUpdateCart = (inventoryId, type, change) => {
+    if (change === 0) {
+      // Remove item completely
+      setCart(prevCart => prevCart.filter(item => !(item.inventoryId === inventoryId && item.type === type)));
+      toast.success('Item removed from cart');
+    } else {
+      // Update quantity
+      setCart(prevCart => {
+        const updated = [...prevCart];
+        const existingIndex = updated.findIndex(item => item.inventoryId === inventoryId && item.type === type);
+        
+        if (existingIndex >= 0) {
+          const newQuantity = updated[existingIndex].quantity + change;
+          if (newQuantity <= 0) {
+            // Remove if quantity would be 0 or less
+            updated.splice(existingIndex, 1);
+            toast.success('Item removed from cart');
+          } else {
+            updated[existingIndex] = {
+              ...updated[existingIndex],
+              quantity: newQuantity
+            };
+            toast.success('Cart updated');
+          }
+        }
+        return updated;
+      });
+    }
+  };
 
   const handlePlaceOrder = async ({ form, totals, paymentMethod, paymentIntentId }) => {
     if (cart.length === 0) return;
@@ -280,15 +296,7 @@ const Catalogs = ({ user, onLogout }) => {
                   <div className="product-options">
                     {/* Sliced Option */}
                     <div className="option-row">
-                      <div
-                        className="option-info"
-                        onClick={() => toggleSelection(product.id, 'sliced')}
-                      >
-                        <div className={`option-indicator ${product.sliced.selected ? 'selected' : ''}`}>
-                          <span className="indicator-dot"></span>
-                        </div>
-                        <span className="option-label">Sliced</span>
-                      </div>
+                      <span className="option-label">Sliced</span>
                       
                       <div className="quantity-controls">
                         <button 
@@ -309,15 +317,7 @@ const Catalogs = ({ user, onLogout }) => {
                     
                     {/* Unsliced Option */}
                     <div className="option-row">
-                      <div
-                        className="option-info"
-                        onClick={() => toggleSelection(product.id, 'unsliced')}
-                      >
-                        <div className={`option-indicator ${product.unsliced.selected ? 'selected' : ''}`}>
-                          <span className="indicator-dot"></span>
-                        </div>
-                        <span className="option-label">Unsliced</span>
-                      </div>
+                      <span className="option-label">Unsliced</span>
                       
                       <div className="quantity-controls">
                         <button 
@@ -350,9 +350,7 @@ const Catalogs = ({ user, onLogout }) => {
         </div>
       </div>
       <ProductModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        onSave={handleSaveProduct}
+        onPlaceOrder={handlePlaceOrder}
       />
       <CartDialog
         isOpen={isCartOpen}
@@ -363,11 +361,12 @@ const Catalogs = ({ user, onLogout }) => {
           setIsCartOpen(false);
           setIsCheckoutOpen(true);
         }}
+        onUpdateCart={handleUpdateCart}
       />
       <CheckoutDialog
         isOpen={isCheckoutOpen}
         cart={cart}
-        user={user}
+        cartTotal={cartTotal}
         onClose={() => setIsCheckoutOpen(false)}
         onPlaceOrder={handlePlaceOrder}
       />

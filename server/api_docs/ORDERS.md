@@ -196,7 +196,71 @@ Authorization: Bearer <token>
 
 ---
 
-## 4. Update Order Status (Admin Only)
+## 4. Cancel Order
+
+**Endpoint**: `PUT /orders/{id}/cancel`
+**Authentication**: Required (Bearer Token)
+**Description**: Cancel an order (merchants only, within 10 minutes of placement)
+
+### Request Body (JSON)
+
+```json
+{
+  "reason": "Customer requested cancellation"
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| id | integer | Yes | Order ID |
+| reason | string | No | Cancellation reason (optional) |
+
+**Rules:**
+- Only merchants can cancel their own orders
+- Orders can only be cancelled within 10 minutes of placement
+- Valid statuses for cancellation: `submitted`, `processing`
+- Once admin changes status to `processing` or `shipped`, cancellation is blocked
+
+### Success Response (200)
+
+```json
+{
+  "success": true,
+  "message": "Order cancelled successfully"
+}
+```
+
+### Error Responses
+
+**Order not found (404)**:
+```json
+{
+  "success": false,
+  "error": "Order not found"
+}
+```
+
+**Cannot cancel (400)**:
+```json
+{
+  "success": false,
+  "error": "Order can only be cancelled within 10 minutes of placement"
+}
+```
+
+**Invalid status (400)**:
+```json
+{
+  "success": false,
+  "error": "Cannot cancel order with status: shipped"
+}
+```
+
+---
+
+## 5. Update Order Status (Admin Only)
 
 **PUT** `/:id/status`
 
