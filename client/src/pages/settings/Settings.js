@@ -7,12 +7,14 @@ import DeliveryAddress from './components/DeliveryAddress';
 import SupportInfo from './components/SupportInfo';
 import './Settings.css';
 
-const Settings = ({ user, onLogout }) => {
+const Settings = ({ user: propUser, onLogout }) => {
   const toast = useToast();
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedAvatarFile, setSelectedAvatarFile] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(propUser);
   const [editFormData, setEditFormData] = useState({
     firstName: '',
     lastName: '',
@@ -33,7 +35,37 @@ const Settings = ({ user, onLogout }) => {
     avatar_url: ''
   });
 
-  // Populate form with user data when component mounts or user changes
+  // Fetch user data directly on mount
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Always fetch fresh user data on mount
+    fetchUserData();
+  }, []); // Empty dependency - runs once on mount
+
+  // Populate form with user data when user changes
   useEffect(() => {
     if (user) {
       console.log('👤 User data received:', user);
@@ -177,7 +209,13 @@ const Settings = ({ user, onLogout }) => {
       <Sidebar user={user} onLogout={onLogout} />
       <div className="main-content">
         <div className="settings-container">
-          {/* Header with Search */}
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner">Loading settings...</div>
+            </div>
+          ) : (
+            <>
+              {/* Header with Search */}
           <div className="settings-header">
             <div className="search-section">
               <input 
@@ -392,7 +430,9 @@ const Settings = ({ user, onLogout }) => {
                 )}
               </div>
             </div>
-          </div>
+            </div>
+            </>
+          )}
         </div>
       </div>
 
@@ -405,8 +445,6 @@ const Settings = ({ user, onLogout }) => {
         onCancel={handleCancelEdit}
         onAvatarSelect={handleAvatarSelect}
       />
-
-
     </div>
   );
 };
