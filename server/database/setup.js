@@ -56,6 +56,14 @@ export async function setupDatabase() {
     // Column might already exist, ignore error
   });
 
+  // Add inventory count column if it doesn't exist
+  await pool.query(`
+    ALTER TABLE inventory 
+    ADD COLUMN IF NOT EXISTS inventory_count INT NOT NULL DEFAULT 0
+  `).catch(() => {
+    // Column might already exist, ignore error
+  });
+
   // 3. Create orders table (stores checkout + invoice details)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS orders (

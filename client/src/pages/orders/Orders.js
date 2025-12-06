@@ -269,12 +269,12 @@ const Orders = ({ user, onLogout }) => {
                   </td>
                   <td>
                     <div className="orders-actions">
-                      <button
+                      {/* <button
                         className="outline-pill-btn"
                         onClick={goToCatalog}
                       >
                         Repeat order
-                      </button>
+                      </button> */}
                       <button
                         className="blue-pill-btn"
                         onClick={() => navigate(`/orders/${order.id}`)}

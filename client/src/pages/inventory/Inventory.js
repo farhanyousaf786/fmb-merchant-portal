@@ -14,7 +14,8 @@ const Inventory = ({ user, onLogout }) => {
     price: '',
     image: '',
     description: '',
-    note: ''
+    note: '',
+    inventory_count: 0
   });
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -63,7 +64,7 @@ const Inventory = ({ user, onLogout }) => {
 
   const openAddModal = () => {
     setEditingItem(null);
-    setFormData({ name: '', price: '', image: '', description: '', note: '' });
+    setFormData({ name: '', price: '', image: '', description: '', note: '', inventory_count: 0 });
     setSelectedImageFile(null);
     setImagePreview('');
     setShowModal(true);
@@ -76,7 +77,8 @@ const Inventory = ({ user, onLogout }) => {
       price: item.price || '',
       image: item.image || '',
       description: item.description || '',
-      note: item.note || ''
+      note: item.note || '',
+      inventory_count: item.inventory_count || 0
     });
     setSelectedImageFile(null);
     setImagePreview(item.image || '');
@@ -231,26 +233,35 @@ const Inventory = ({ user, onLogout }) => {
             <table className="inventory-table">
               <thead>
                 <tr>
-                  <th>ID</th>
                   <th>Name</th>
                   <th>Price</th>
+                  <th>Inventory Count</th>
                   <th>Image</th>
                   <th>Description</th>
-                  <th>Note</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {items.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="empty-row">No items in inventory</td>
+                    <td colSpan="6" className="empty-row">No items in inventory</td>
                   </tr>
                 ) : (
                   items.map(item => (
                     <tr key={item.id} style={item.status === 'inactive' ? { opacity: 0.6, backgroundColor: '#f9fafb' } : {}}>
-                      <td>{item.id}</td>
                       <td>{item.name}</td>
                       <td>${parseFloat(item.price).toFixed(2)}</td>
+                      <td>
+                        <span style={{ 
+                          fontWeight: 'bold',
+                          color: item.inventory_count > 0 ? '#059669' : '#dc2626',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          backgroundColor: item.inventory_count > 0 ? '#ecfdf5' : '#fef2f2'
+                        }}>
+                          {item.inventory_count || 0}
+                        </span>
+                      </td>
                       <td>
                         {item.image ? (
                           <img src={getImageUrl(item.image)} alt={item.name} className="thumb" />
@@ -259,7 +270,6 @@ const Inventory = ({ user, onLogout }) => {
                         )}
                       </td>
                       <td className="truncate">{item.description}</td>
-                      <td className="truncate">{item.note}</td>
                       <td>
                         <button className="secondary-btn" onClick={() => openEditModal(item)}>Edit</button>
                         {user?.role === 'admin' && (
@@ -318,8 +328,19 @@ const Inventory = ({ user, onLogout }) => {
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
                     value={formData.price}
                     onChange={e => setFormData({ ...formData, price: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="form-row">
+                  <label>Inventory Count</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.inventory_count}
+                    onChange={e => setFormData({ ...formData, inventory_count: parseInt(e.target.value) || 0 })}
                     required
                   />
                 </div>

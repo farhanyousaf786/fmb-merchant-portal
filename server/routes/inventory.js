@@ -16,7 +16,7 @@ const DEFAULT_IMAGE_URL = 'https://images.unsplash.com/photo-1549931319-a545dcf3
 // Add new item
 router.post('/add', auth, async (req, res) => {
   try {
-    const { name, price, image, description, note } = req.body;
+    const { name, price, image, description, note, inventory_count = 0 } = req.body;
     
     if (!name || !price) {
       return res.status(400).json({ success: false, error: 'Name and price are required' });
@@ -24,7 +24,7 @@ router.post('/add', auth, async (req, res) => {
 
     const normalizedImage = image && image.trim() !== '' ? image : DEFAULT_IMAGE_URL;
 
-    const id = await Inventory.create({ name, price, image: normalizedImage, description, note });
+    const id = await Inventory.create({ name, price, image: normalizedImage, description, note, inventory_count });
     res.status(201).json({ success: true, id, message: 'Item added successfully' });
   } catch (error) {
     console.error('Error adding inventory item:', error);
@@ -47,7 +47,7 @@ router.get('/all', auth, async (req, res) => {
 router.put('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, image, description, note } = req.body;
+    const { name, price, image, description, note, inventory_count } = req.body;
 
     if (!name || !price) {
       return res.status(400).json({ success: false, error: 'Name and price are required' });
@@ -55,7 +55,7 @@ router.put('/:id', auth, async (req, res) => {
 
     const normalizedImage = image && image.trim() !== '' ? image : DEFAULT_IMAGE_URL;
 
-    const updated = await Inventory.update(id, { name, price, image: normalizedImage, description, note });
+    const updated = await Inventory.update(id, { name, price, image: normalizedImage, description, note, inventory_count });
     if (!updated) {
       return res.status(404).json({ success: false, error: 'Item not found' });
     }

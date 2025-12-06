@@ -8,17 +8,18 @@ class Inventory {
     this.image = data.image;
     this.description = data.description;
     this.note = data.note;
+    this.inventory_count = data.inventory_count || 0;
     this.status = data.status || 'active';
     this.created_at = data.created_at;
   }
 
   static async create(data) {
     const pool = await getPool();
-    const { name, price, image, description, note } = data;
+    const { name, price, image, description, note, inventory_count = 0 } = data;
     
     const [result] = await pool.query(
-      'INSERT INTO inventory (name, price, image, description, note) VALUES (?, ?, ?, ?, ?)',
-      [name, price, image, description, note]
+      'INSERT INTO inventory (name, price, image, description, note, inventory_count) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, price, image, description, note, inventory_count]
     );
 
     return result.insertId;
@@ -34,10 +35,10 @@ class Inventory {
 
   static async update(id, data) {
     const pool = await getPool();
-    const { name, price, image, description, note } = data;
+    const { name, price, image, description, note, inventory_count } = data;
     const [result] = await pool.query(
-      'UPDATE inventory SET name = ?, price = ?, image = ?, description = ?, note = ? WHERE id = ?',
-      [name, price, image, description, note, id]
+      'UPDATE inventory SET name = ?, price = ?, image = ?, description = ?, note = ?, inventory_count = ? WHERE id = ?',
+      [name, price, image, description, note, inventory_count, id]
     );
     return result.affectedRows > 0;
   }
