@@ -94,6 +94,19 @@ const Orders = ({ user, onLogout }) => {
     navigate('/catalogs');
   };
 
+  const getStatusDisplayText = (status) => {
+    const statusMap = {
+      'submitted': 'Submitted',
+      'processing': 'Preparing',
+      'shipped': 'Shipped',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled',
+      'declined': 'Declined',
+      'draft': 'Draft'
+    };
+    return statusMap[status] || (status.charAt(0).toUpperCase() + status.slice(1));
+  };
+
   const renderContent = () => {
     if (loading) {
       return <div className="orders-loading">Loading orders...</div>;
@@ -264,7 +277,7 @@ const Orders = ({ user, onLogout }) => {
                   </td>
                   <td>
                     <span className={`status-pill status-${order.status}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      {getStatusDisplayText(order.status)}
                     </span>
                   </td>
                   <td>

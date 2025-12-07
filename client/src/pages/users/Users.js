@@ -343,6 +343,7 @@ function Users({ user, onLogout }) {
                           onClick={() => openUserDetailModal(u)}
                           title="View Details"
                         >
+                          
                           Details
                         </button>
                       </td>

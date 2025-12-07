@@ -66,7 +66,7 @@ const StatsRow = () => {
         iconSrc="/assets/icons/orders-icon.png" 
       />
       <StatCard 
-        title="Processing" 
+        title="Preparing" 
         value={stats.processing} 
         note="in progress" 
         tone="tone-blue" 
