@@ -191,6 +191,11 @@ export async function setupDatabase() {
     console.log('✅ Added stripe_payment_intent_id column to orders');
   }
 
+  if (!existingColumns.includes('payment_type')) {
+    await pool.query(`ALTER TABLE orders ADD COLUMN payment_type ENUM('card', 'cash_on_delivery') DEFAULT 'card'`);
+    console.log('✅ Added payment_type column to orders');
+  }
+
   console.log('✅ Payment system schema created/verified');
 
   // 4. Create order_items table

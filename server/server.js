@@ -5,6 +5,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { setupDatabase } from "./database/setup.js";
 import authRoutes from "./routes/auth.js";
+import usersRoutes from "./routes/users.js";
 import mediaRoutes from "./routes/media.js";
 import inventoryRoutes from "./routes/inventory.js";
 import ordersRoutes from "./routes/orders.js";
@@ -33,6 +34,9 @@ console.log('✅ Health check route loaded');
 
 app.use('/api/auth', authRoutes);
 console.log('✅ Auth routes loaded');
+
+app.use('/api/users', usersRoutes);
+console.log('✅ Users routes loaded');
 
 app.use('/api/media', mediaRoutes);
 console.log('✅ Media routes loaded');

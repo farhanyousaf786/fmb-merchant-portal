@@ -368,9 +368,15 @@ const OrderDetail = ({ user, onLogout }) => {
                       </div>
                     )}
                     <div className="info-item">
+                      <label>Payment Method</label>
+                      <span className="payment-method-badge">
+                        {order.payment_type === 'cash_on_delivery' ? '💵 Cash on Delivery' : '💳 Card Payment'}
+                      </span>
+                    </div>
+                    <div className="info-item">
                       <label>Payment Status</label>
                       <span className={`status-badge ${order.payment_status === 'paid' ? 'status-delivered' : 'status-pending'} large-badge`}>
-                        {order.payment_status === 'paid' ? '✓ Paid' : '⚠ Payment Required'}
+                        {order.payment_status === 'paid' ? '✓ Paid' : order.payment_type === 'cash_on_delivery' ? '💵 Pay on Delivery' : '⚠ Payment Required'}
                       </span>
                     </div>
                     {order.stripe_payment_intent_id && (

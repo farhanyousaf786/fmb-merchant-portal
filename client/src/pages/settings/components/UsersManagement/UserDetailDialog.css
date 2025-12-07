@@ -1,0 +1,361 @@
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+/* User Detail Dialog */
+.user-detail-dialog {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Dialog Header */
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 16px 16px 0 0;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.edit-toggle-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.edit-toggle-btn:hover {
+  background: #2563eb;
+}
+
+.edit-toggle-btn.save-mode {
+  background: #10b981;
+}
+
+.edit-toggle-btn.save-mode:hover {
+  background: #059669;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Dialog Content */
+.dialog-content {
+  padding: 24px;
+}
+
+/* Detail Sections */
+.detail-section {
+  margin-bottom: 32px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-item span {
+  font-size: 15px;
+  color: #111827;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Edit Inputs */
+.edit-input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  background: white;
+  transition: all 0.2s;
+}
+
+.edit-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.edit-input[type="textarea"],
+.edit-input textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Badges */
+.role-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.role-badge.admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.role-badge.merchant {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.role-badge.staff {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Actions Grid */
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.action-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn.approve-action {
+  background: #10b981;
+  color: white;
+}
+
+.action-btn.approve-action:hover {
+  background: #059669;
+}
+
+.action-btn.reject-action {
+  background: #ef4444;
+  color: white;
+}
+
+.action-btn.reject-action:hover {
+  background: #dc2626;
+}
+
+.action-btn.password-action {
+  background: #3b82f6;
+  color: white;
+}
+
+.action-btn.password-action:hover {
+  background: #2563eb;
+}
+
+/* Role Assignment */
+.role-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.role-assignment label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.role-select-modal {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.role-select-modal:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 16px;
+  }
+  
+  .user-detail-dialog {
+    max-width: 100%;
+  }
+  
+  .dialog-header {
+    padding: 20px;
+  }
+  
+  .dialog-content {
+    padding: 20px;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dialog-header h2 {
+    font-size: 20px;
+  }
+  
+  .header-actions {
+    gap: 6px;
+  }
+  
+  .edit-toggle-btn {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dialog-header {
+    padding: 16px;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .header-actions {
+    justify-content: space-between;
+  }
+  
+  .dialog-content {
+    padding: 16px;
+  }
+  
+  .detail-section {
+    margin-bottom: 24px;
+  }
+  
+  .detail-section h3 {
+    font-size: 16px;
+  }
+}

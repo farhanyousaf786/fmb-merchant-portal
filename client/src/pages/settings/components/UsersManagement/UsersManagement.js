@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import AlertDialog from '../../../../universal_components/AlertDialog/AlertDialog';
-import PersonalInfoTab from './components/PersonalInfoTab';
+import UserDetailDialog from './UserDetailDialog';
 import './UsersManagement.css';
 
 const UsersManagement = ({ user }) => {
@@ -240,29 +240,6 @@ const UsersManagement = ({ user }) => {
     });
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-    
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
-        }
-      });
-      const data = await response.json();
-      if (data.success) {
-        alert('User deleted successfully!');
-        fetchUsers();
-      } else {
-        alert(data.error || 'Failed to delete user');
-      }
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user');
-    }
-  };
-
   return (
     <div className="users-management-container">
       {loading ? (
@@ -375,92 +352,15 @@ const UsersManagement = ({ user }) => {
 
       {/* User Details Modal */}
       {showUserDetailModal && selectedUser && (
-        <div className="modal-overlay" onClick={closeUserDetailModal}>
-          <div className="modal-content user-detail-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>User Details</h2>
-              <button className="close-btn" onClick={closeUserDetailModal}>
-                ×
-              </button>
-            </div>
-            
-            <div className="user-detail-content">
-              <PersonalInfoTab selectedUser={selectedUser} />
-              
-              <div className="detail-actions-section">
-                <h3>Actions</h3>
-                <div className="detail-actions-grid">
-                  {selectedUser.status === 'pending' && (
-                    <>
-                      <button 
-                        className="action-btn approve-action"
-                        onClick={() => {
-                          approveUser(selectedUser.id);
-                          closeUserDetailModal();
-                        }}
-                      >
-                        ✓ Approve User
-                      </button>
-                      <button 
-                        className="action-btn reject-action"
-                        onClick={() => {
-                          rejectUser(selectedUser.id);
-                          closeUserDetailModal();
-                        }}
-                      >
-                        ✗ Reject User
-                      </button>
-                    </>
-                  )}
-                  
-                  {selectedUser.status === 'pending' && (
-                    <div className="role-assignment">
-                      <label>Assign Role:</label>
-                      <select 
-                        className="role-select-modal"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            assignRole(selectedUser.id, e.target.value);
-                            closeUserDetailModal();
-                          }
-                        }}
-                        defaultValue=""
-                      >
-                        <option value="" disabled>Select Role</option>
-                        <option value="merchant">Merchant</option>
-                        <option value="staff">Staff</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                  )}
-
-                  <button 
-                    className="action-btn password-action"
-                    onClick={() => {
-                      closeUserDetailModal();
-                      openPasswordModal(selectedUser);
-                    }}
-                  >
-                    🔑 Change Password
-                  </button>
-
-                  <button 
-                    className="action-btn delete-action"
-                    onClick={() => {
-                      if (window.confirm('Are you sure you want to delete this user?')) {
-                        handleDeleteUser(selectedUser.id);
-                        closeUserDetailModal();
-                      }
-                    }}
-                    disabled={selectedUser.id === user?.id}
-                  >
-                    🗑️ Delete User
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <UserDetailDialog
+          user={user}
+          selectedUser={selectedUser}
+          onClose={closeUserDetailModal}
+          onApproveUser={approveUser}
+          onRejectUser={rejectUser}
+          onAssignRole={assignRole}
+          onChangePassword={openPasswordModal}
+        />
       )}
 
       {/* Universal Alert Dialog */}

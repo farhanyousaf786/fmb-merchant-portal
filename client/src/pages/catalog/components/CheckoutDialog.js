@@ -136,7 +136,22 @@ const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
     setIsProcessing(true);
     
     try {
-      // Create payment intent
+      // Check if it's Cash on Delivery
+      if (selectedPaymentMethod.paymentType === 'cash_on_delivery') {
+        console.log('💵 Processing Cash on Delivery order...');
+        
+        // Place order without payment processing
+        onPlaceOrder({ 
+          form, 
+          totals, 
+          paymentMethod: selectedPaymentMethod,
+          paymentType: 'cash_on_delivery',
+          paymentStatus: 'pending'
+        });
+        return;
+      }
+      
+      // Card payment - Create payment intent
       const token = localStorage.getItem('authToken');
       const intentResponse = await fetch(`${process.env.REACT_APP_API_URL}/payments/create-payment-intent`, {
         method: 'POST',
@@ -163,7 +178,9 @@ const CheckoutDialog = ({ isOpen, cart, user, onClose, onPlaceOrder }) => {
         form, 
         totals, 
         paymentMethod: selectedPaymentMethod,
-        paymentIntentId: intentData.paymentIntentId
+        paymentIntentId: intentData.paymentIntentId,
+        paymentType: 'card',
+        paymentStatus: 'paid'
       });
       
     } catch (error) {

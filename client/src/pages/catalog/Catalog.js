@@ -183,13 +183,14 @@ const Catalogs = ({ user, onLogout }) => {
     }
   };
 
-  const handlePlaceOrder = async ({ form, totals, paymentMethod, paymentIntentId }) => {
+  const handlePlaceOrder = async ({ form, totals, paymentMethod, paymentIntentId, paymentType, paymentStatus }) => {
     if (cart.length === 0) return;
     try {
       const token = localStorage.getItem('authToken');
       
       console.log('📦 Preparing order with payment info...');
       console.log('Payment Method:', paymentMethod);
+      console.log('Payment Type:', paymentType);
       console.log('Payment Intent ID:', paymentIntentId);
       
       const body = {
@@ -210,9 +211,10 @@ const Catalogs = ({ user, onLogout }) => {
           quantity: item.quantity
         })),
         // Add payment information
-        payment_method_id: paymentMethod?.id,
-        stripe_payment_intent_id: paymentIntentId,
-        payment_status: 'paid'
+        payment_method_id: paymentType === 'cash_on_delivery' ? null : paymentMethod?.id,
+        stripe_payment_intent_id: paymentIntentId || null,
+        payment_status: paymentStatus || (paymentType === 'cash_on_delivery' ? 'pending' : 'paid'),
+        payment_type: paymentType || 'card'
       };
 
       console.log('📤 Sending order to server:', body);

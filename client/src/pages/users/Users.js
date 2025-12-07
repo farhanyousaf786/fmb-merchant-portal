@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../sidebar/Sidebar';
+import UserDetailDialog from '../settings/components/UsersManagement/UserDetailDialog';
 import './Users.css';
 
 function Users({ user, onLogout }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showUserDetailModal, setShowUserDetailModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [passwordUser, setPasswordUser] = useState(null);
+  const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [formData, setFormData] = useState({
@@ -97,23 +103,162 @@ function Users({ user, onLogout }) {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user?')) return;
-    
+  const openUserDetailModal = (user) => {
+    setSelectedUser(user);
+    setShowUserDetailModal(true);
+  };
+
+  const closeUserDetailModal = () => {
+    setShowUserDetailModal(false);
+    setSelectedUser(null);
+  };
+
+  const approveUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to approve this user?')) return;
+
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${userId}`, {
-        method: 'DELETE'
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update-user-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ userId, status: 'active' })
       });
       const data = await response.json();
       if (data.success) {
-        alert('User deleted successfully!');
+        alert('User approved successfully!');
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to delete user');
+        alert(data.error || 'Failed to approve user');
       }
     } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Failed to delete user');
+      console.error('Error approving user:', error);
+      alert('Failed to approve user');
+    }
+  };
+
+  const rejectUser = async (userId) => {
+    const confirmed = window.confirm('Are you sure you want to reject this user?');
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/update-user-status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ userId, status: 'inactive' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('User rejected');
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to reject user');
+      }
+    } catch (error) {
+      console.error('Error rejecting user:', error);
+      alert('Failed to reject user');
+    }
+  };
+
+  const assignRole = async (userId, role) => {
+    if (!role) return;
+    
+    if (!window.confirm(`Are you sure you want to assign the role "${role}" to this user?`)) return;
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${userId}/role`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({ role, status: 'active' })
+      });
+      const data = await response.json();
+      if (data.success) {
+        alert('Role assigned successfully');
+        fetchUsers();
+      } else {
+        alert(data.error || 'Failed to assign role');
+      }
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      alert('Failed to assign role');
+    }
+  };
+
+  const openPasswordModal = (user) => {
+    console.log('🔐 Opening password modal for user:', user);
+    setPasswordUser(user);
+    setPasswordData({ newPassword: '', confirmPassword: '' });
+    setShowPasswordModal(true);
+  };
+
+  const closePasswordModal = () => {
+    setShowPasswordModal(false);
+    setPasswordUser(null);
+    setPasswordData({ newPassword: '', confirmPassword: '' });
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    console.log('🔐 Frontend: Password change initiated');
+    console.log('👤 Target user:', passwordUser);
+    console.log('🔑 New password length:', passwordData.newPassword.length);
+    
+    if (!passwordUser) {
+      console.error('❌ No user selected for password change');
+      alert('Error: No user selected');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    const token = localStorage.getItem('authToken');
+    console.log('🎫 Auth token present:', !!token);
+    console.log('🎫 Token preview:', token ? token.substring(0, 20) + '...' : 'NONE');
+    
+    try {
+      const requestBody = { newPassword: passwordData.newPassword };
+      console.log('📤 Sending request to:', `${process.env.REACT_APP_API_URL}/users/${passwordUser.id}/password`);
+      console.log('📤 Request body:', { ...requestBody, newPassword: '[REDACTED]' });
+      
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/${passwordUser.id}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('📥 Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('📥 Response data:', data);
+      
+      if (data.success) {
+        alert('Password updated successfully');
+        closePasswordModal();
+      } else {
+        alert(data.error || 'Failed to update password');
+      }
+    } catch (error) {
+      console.error('❌ Frontend error updating password:', error);
+      alert('Failed to update password');
     }
   };
 
@@ -194,11 +339,11 @@ function Users({ user, onLogout }) {
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
                         <button 
-                          className="delete-btn"
-                          onClick={() => handleDeleteUser(u.id)}
-                          disabled={u.id === user?.id}
+                          className="details-btn"
+                          onClick={() => openUserDetailModal(u)}
+                          title="View Details"
                         >
-                          Delete
+                          Details
                         </button>
                       </td>
                     </tr>
@@ -272,7 +417,64 @@ function Users({ user, onLogout }) {
             </div>
           </div>
         )}
+
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <div className="modal-overlay" onClick={closePasswordModal}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Change Password</h2>
+                <button className="close-btn" onClick={closePasswordModal}>×</button>
+              </div>
+              <form onSubmit={handleChangePassword} className="user-form">
+                <div className="form-group">
+                  <label>New Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                    placeholder="Enter new password"
+                    minLength="6"
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Confirm Password</label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                    placeholder="Confirm new password"
+                    minLength="6"
+                    required
+                  />
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="cancel-btn" onClick={closePasswordModal}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="submit-btn">
+                    Update Password
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* User Details Modal */}
+      {showUserDetailModal && selectedUser && (
+        <UserDetailDialog
+          user={user}
+          selectedUser={selectedUser}
+          onClose={closeUserDetailModal}
+          onApproveUser={approveUser}
+          onRejectUser={rejectUser}
+          onAssignRole={assignRole}
+          onChangePassword={openPasswordModal}
+        />
+      )}
     </div>
   );
 }

@@ -194,6 +194,7 @@ router.post('/', auth, async (req, res) => {
       payment_method_id,
       stripe_payment_intent_id,
       payment_status = 'pending',
+      payment_type = 'card',
     } = req.body;
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -253,8 +254,8 @@ router.post('/', auth, async (req, res) => {
         delivery_address, delivery_city, delivery_country, delivery_postal,
         notes,
         subtotal_amount, tax_amount, delivery_fee, discount_amount, total_amount,
-        payment_method_id, stripe_payment_intent_id, payment_status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        payment_method_id, stripe_payment_intent_id, payment_status, payment_type
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         contact_first_name || null,
@@ -274,6 +275,7 @@ router.post('/', auth, async (req, res) => {
         payment_method_id || null,
         stripe_payment_intent_id || null,
         payment_status,
+        payment_type,
       ]
     );
 
@@ -378,6 +380,7 @@ router.get('/', auth, async (req, res) => {
          o.created_at,
          o.invoice_pdf_url,
          o.payment_status,
+         o.payment_type,
          o.stripe_payment_intent_id,
          o.contact_first_name,
          o.contact_last_name,
@@ -403,6 +406,7 @@ router.get('/', auth, async (req, res) => {
          o.created_at,
          o.invoice_pdf_url,
          o.payment_status,
+         o.payment_type,
          o.stripe_payment_intent_id,
          o.contact_first_name,
          o.contact_last_name,

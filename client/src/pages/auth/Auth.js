@@ -12,7 +12,6 @@ const Auth = ({ setUser }) => {
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
-  const [postal, setPostal] = useState('');
   const [zip, setZip] = useState('');
   const [role, setRole] = useState('merchant');
   const [error, setError] = useState('');
@@ -41,7 +40,6 @@ const Auth = ({ setUser }) => {
             legal_address: address,
             country: 'N/A',
             city: city,
-            postal: postal,
             zip: zip,
             role: role,
             primary_contact_name: `${firstName} ${lastName}`
@@ -116,7 +114,6 @@ const Auth = ({ setUser }) => {
     setPhone('');
     setAddress('');
     setCity('');
-    setPostal('');
     setZip('');
     setRole('merchant');
     setError('');
@@ -270,33 +267,18 @@ const Auth = ({ setUser }) => {
                     />
                   </div>
 
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label htmlFor="postal" className="form-label">Postal *</label>
-                      <input
-                        type="text"
-                        id="postal"
-                        value={postal}
-                        onChange={(e) => setPostal(e.target.value)}
-                        placeholder="Postal code"
-                        required
-                        disabled={loading}
-                        className="form-input"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="zip" className="form-label">Zip *</label>
-                      <input
-                        type="text"
-                        id="zip"
-                        value={zip}
-                        onChange={(e) => setZip(e.target.value)}
-                        placeholder="ZIP code"
-                        required
-                        disabled={loading}
-                        className="form-input"
-                      />
-                    </div>
+                  <div className="form-group">
+                    <label htmlFor="zip" className="form-label">Zip *</label>
+                    <input
+                      type="text"
+                      id="zip"
+                      value={zip}
+                      onChange={(e) => setZip(e.target.value)}
+                      placeholder="ZIP code"
+                      required
+                      disabled={loading}
+                      className="form-input"
+                    />
                   </div>
 
                   <div className="form-group">
