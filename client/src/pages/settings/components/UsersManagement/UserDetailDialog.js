@@ -233,7 +233,9 @@ const UserDetailDialog = ({ user, selectedUser, onClose, onApproveUser, onReject
                 <label>Status</label>
                 <span className={`status-badge ${selectedUser.status}`}>
                   {selectedUser.status === 'pending' ? '🟡 Pending' : 
-                   selectedUser.status === 'approved' ? '🟢 Approved' : 
+                   selectedUser.status === 'active' ? '🟢 Active' : 
+                   selectedUser.status === 'approved' ? '🟢 Approved' :
+                   selectedUser.status === 'inactive' ? '🔴 Inactive' :
                    '🔴 Rejected'}
                 </span>
               </div>

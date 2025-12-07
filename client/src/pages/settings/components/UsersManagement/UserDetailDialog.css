@@ -208,12 +208,14 @@
   color: #92400e;
 }
 
-.status-badge.approved {
+.status-badge.approved,
+.status-badge.active {
   background: #d1fae5;
   color: #065f46;
 }
 
-.status-badge.rejected {
+.status-badge.rejected,
+.status-badge.inactive {
   background: #fee2e2;
   color: #991b1b;
 }
