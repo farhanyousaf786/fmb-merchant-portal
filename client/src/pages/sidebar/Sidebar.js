@@ -12,7 +12,7 @@ const Sidebar = ({ user, onLogout }) => {
     if (onLogout) {
       onLogout();
     }
-    navigate('/signin');
+    navigate('/auth');
   };
 
   const isAdmin = user?.role === 'admin';

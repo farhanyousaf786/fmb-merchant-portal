@@ -11,6 +11,19 @@ const Trackings = ({ user, onLogout }) => {
 
   const isAdmin = user?.role === 'admin';
 
+  const getStatusDisplayText = (status) => {
+    const statusMap = {
+      'submitted': 'Submitted',
+      'processing': 'Preparing',
+      'shipped': 'Shipped',
+      'delivered': 'Delivered',
+      'cancelled': 'Cancelled',
+      'declined': 'Declined',
+      'draft': 'Draft'
+    };
+    return statusMap[status] || (status.charAt(0).toUpperCase() + status.slice(1));
+  };
+
   useEffect(() => {
     fetchTrackingOrders();
   }, []);
@@ -124,7 +137,7 @@ const Trackings = ({ user, onLogout }) => {
                       <td>#{String(order.id).padStart(5, '0')}</td>
                       <td>
                         <span className={`status-pill status-${order.status}`}>
-                          {order.status}
+                          {getStatusDisplayText(order.status)}
                         </span>
                       </td>
                       <td>${Number(order.total_amount || 0).toFixed(2)}</td>

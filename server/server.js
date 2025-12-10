@@ -61,6 +61,18 @@ console.log('✅ Payments routes loaded');
 
 console.log('✅ All routes loaded successfully\n');
 
+// Serve React app in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+  
+  // Handle client-side routing - return React's index.html for all non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+  
+  console.log('🎨 React app serving enabled for production');
+}
+
 // Start server
 async function start() {
   try {

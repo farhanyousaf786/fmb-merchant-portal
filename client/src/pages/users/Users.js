@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useToast } from '../../components/Toast/ToastContext';
 import Sidebar from '../sidebar/Sidebar';
 import UserDetailDialog from '../settings/components/UsersManagement/UserDetailDialog';
 import './Users.css';
 
 function Users({ user, onLogout }) {
+  const toast = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -12,6 +14,9 @@ function Users({ user, onLogout }) {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordUser, setPasswordUser] = useState(null);
   const [passwordData, setPasswordData] = useState({ newPassword: '', confirmPassword: '' });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showAddPassword, setShowAddPassword] = useState(false);
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   const [formData, setFormData] = useState({
@@ -61,13 +66,14 @@ function Users({ user, onLogout }) {
       const data = await response.json();
       if (data.success) {
         console.log('✅ User status updated');
+        toast.success('User status updated successfully');
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to update user status');
+        toast.error(data.error || 'Failed to update user status');
       }
     } catch (error) {
       console.error('❌ Error updating user status:', error);
-      alert('Failed to update user status');
+      toast.error('Failed to update user status');
     }
   };
 
@@ -81,25 +87,27 @@ function Users({ user, onLogout }) {
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
+      const token = localStorage.getItem('authToken');
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/users/create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(formData)
       });
       const data = await response.json();
       if (data.success) {
-        alert('User created successfully!');
+        toast.success('User created successfully!');
         setShowAddModal(false);
-        setFormData({ name: '', email: '', password: '', role: 'merchant' });
+        setFormData({ first_name: '', last_name: '', email: '', password: '', role: 'merchant', status: 'active' });
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to create user');
+        toast.error(data.error || 'Failed to create user');
       }
     } catch (error) {
       console.error('Error creating user:', error);
-      alert('Failed to create user');
+      toast.error('Failed to create user');
     }
   };
 
@@ -127,14 +135,14 @@ function Users({ user, onLogout }) {
       });
       const data = await response.json();
       if (data.success) {
-        alert('User approved successfully!');
+        toast.success('User approved successfully!');
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to approve user');
+        toast.error(data.error || 'Failed to approve user');
       }
     } catch (error) {
       console.error('Error approving user:', error);
-      alert('Failed to approve user');
+      toast.error('Failed to approve user');
     }
   };
 
@@ -153,14 +161,14 @@ function Users({ user, onLogout }) {
       });
       const data = await response.json();
       if (data.success) {
-        alert('User rejected');
+        toast.success('User rejected');
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to reject user');
+        toast.error(data.error || 'Failed to reject user');
       }
     } catch (error) {
       console.error('Error rejecting user:', error);
-      alert('Failed to reject user');
+      toast.error('Failed to reject user');
     }
   };
 
@@ -180,14 +188,14 @@ function Users({ user, onLogout }) {
       });
       const data = await response.json();
       if (data.success) {
-        alert('Role assigned successfully');
+        toast.success('Role assigned successfully');
         fetchUsers();
       } else {
-        alert(data.error || 'Failed to assign role');
+        toast.error(data.error || 'Failed to assign role');
       }
     } catch (error) {
       console.error('Error assigning role:', error);
-      alert('Failed to assign role');
+      toast.error('Failed to assign role');
     }
   };
 
@@ -213,17 +221,17 @@ function Users({ user, onLogout }) {
     
     if (!passwordUser) {
       console.error('❌ No user selected for password change');
-      alert('Error: No user selected');
+      toast.error('Error: No user selected');
       return;
     }
     
     if (passwordData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters');
+      toast.error('Password must be at least 6 characters');
       return;
     }
     
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
     
@@ -251,14 +259,14 @@ function Users({ user, onLogout }) {
       console.log('📥 Response data:', data);
       
       if (data.success) {
-        alert('Password updated successfully');
+        toast.success('Password updated successfully');
         closePasswordModal();
       } else {
-        alert(data.error || 'Failed to update password');
+        toast.error(data.error || 'Failed to update password');
       }
     } catch (error) {
       console.error('❌ Frontend error updating password:', error);
-      alert('Failed to update password');
+      toast.error('Failed to update password');
     }
   };
 
@@ -268,7 +276,11 @@ function Users({ user, onLogout }) {
       <div className="users-content">
         <div className="users-header">
           <h1>Users Management</h1>
-          <button className="add-user-btn" onClick={() => setShowAddModal(true)}>
+          <button className="add-user-btn" onClick={() => {
+            setFormData({ first_name: '', last_name: '', email: '', password: '', role: 'merchant', status: 'active' });
+            setShowAddPassword(false);
+            setShowAddModal(true);
+          }}>
             + Add New User
           </button>
         </div>
@@ -369,11 +381,20 @@ function Users({ user, onLogout }) {
               </div>
               <form onSubmit={handleAddUser} className="user-form">
                 <div className="form-group">
-                  <label>Full Name</label>
+                  <label>First Name</label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.last_name}
+                    onChange={(e) => setFormData({...formData, last_name: e.target.value})}
                     required
                   />
                 </div>
@@ -388,13 +409,32 @@ function Users({ user, onLogout }) {
                 </div>
                 <div className="form-group">
                   <label>Password</label>
-                  <input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    required
-                    minLength="6"
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showAddPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) => setFormData({...formData, password: e.target.value})}
+                      required
+                      minLength="6"
+                    />
+                    <button 
+                      type="button" 
+                      className="password-toggle"
+                      onClick={() => setShowAddPassword(!showAddPassword)}
+                    >
+                      {showAddPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Role</label>
@@ -430,25 +470,63 @@ function Users({ user, onLogout }) {
               <form onSubmit={handleChangePassword} className="user-form">
                 <div className="form-group">
                   <label>New Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.newPassword}
-                    onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
-                    placeholder="Enter new password"
-                    minLength="6"
-                    required
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
+                      placeholder="Enter new password"
+                      minLength="6"
+                      required
+                    />
+                    <button 
+                      type="button" 
+                      className="password-toggle"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="form-group">
                   <label>Confirm Password</label>
-                  <input
-                    type="password"
-                    value={passwordData.confirmPassword}
-                    onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
-                    placeholder="Confirm new password"
-                    minLength="6"
-                    required
-                  />
+                  <div className="password-input-container">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}
+                      placeholder="Confirm new password"
+                      minLength="6"
+                      required
+                    />
+                    <button 
+                      type="button" 
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <div className="form-actions">
                   <button type="button" className="cancel-btn" onClick={closePasswordModal}>

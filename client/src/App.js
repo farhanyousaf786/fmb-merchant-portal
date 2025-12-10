@@ -13,6 +13,7 @@ const Users = React.lazy(() => import('./pages/users/Users'));
 const Inventory = React.lazy(() => import('./pages/inventory/Inventory'));
 const Orders = React.lazy(() => import('./pages/orders/Orders'));
 const OrderDetail = React.lazy(() => import('./pages/orders/OrderDetail'));
+const Invoice = React.lazy(() => import('./pages/orders/Invoice'));
 const Catalogs = React.lazy(() => import('./pages/catalog/Catalog'));
 const Checkouts = React.lazy(() => import('./pages/checkout_page/Checkouts'));
 const Invoices = React.lazy(() => import('./pages/invoices/Invoices'));
@@ -39,7 +40,7 @@ const LoadingSpinner = () => (
 // Protected Route Component
 function ProtectedRoute({ children }) {
   const token = localStorage.getItem('authToken');
-  return token ? children : <Navigate to="/signin" />;
+  return token ? children : <Navigate to="/auth" />;
 }
 
 function App() {
@@ -85,7 +86,6 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/auth" />} />
               <Route path="/auth" element={<Auth setUser={setUser} />} />
-              <Route path="/signin" element={<Auth setUser={setUser} />} />
               <Route path="/pending" element={<Pending />} />
               <Route
                 path="/dashboard"
@@ -124,6 +124,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <OrderDetail user={user} onLogout={handleLogout} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/orders/:id/invoice"
+                element={
+                  <ProtectedRoute>
+                    <Invoice user={user} onLogout={handleLogout} />
                   </ProtectedRoute>
                 }
               />

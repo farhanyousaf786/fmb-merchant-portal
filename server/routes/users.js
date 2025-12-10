@@ -30,6 +30,59 @@ const auth = (req, res, next) => {
   next();
 };
 
+// Admin create new user (simple form)
+router.post('/create', auth, async (req, res) => {
+  console.log('👤 Admin creating new user');
+  console.log('📝 Request body:', { ...req.body, password: '[REDACTED]' });
+  
+  try {
+    const { first_name, last_name, email, password, role, status } = req.body;
+    
+    // Validate required fields
+    if (!first_name || !last_name || !email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'First name, last name, email, and password are required' 
+      });
+    }
+    
+    // Check if admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Admin access required' });
+    }
+    
+    const { getPool } = await import('../database/db.js');
+    const pool = await getPool();
+    
+    // Check if email already exists
+    const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(400).json({ success: false, error: 'Email already registered' });
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Insert new user
+    const [result] = await pool.query(
+      `INSERT INTO users (first_name, last_name, email, password, role, status, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [first_name, last_name, email, hashedPassword, role || 'merchant', status || 'active']
+    );
+    
+    console.log('✅ User created with ID:', result.insertId);
+    
+    res.status(201).json({ 
+      success: true, 
+      message: 'User created successfully',
+      userId: result.insertId 
+    });
+  } catch (error) {
+    console.error('❌ Error creating user:', error);
+    res.status(500).json({ success: false, error: 'Failed to create user' });
+  }
+});
+
 // Update user password
 router.put('/:userId/password', auth, async (req, res) => {
   console.log('🔐 Password update request received');

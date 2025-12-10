@@ -486,7 +486,7 @@ router.get('/:id', auth, async (req, res) => {
     let trackingHistory = [];
     try {
       const [trackingData] = await pool.query(
-        'SELECT * FROM order_tracking WHERE order_id = ? ORDER BY updated_at DESC',
+        'SELECT * FROM order_tracking WHERE order_id = ? ORDER BY created_at DESC',
         [id]
       );
       trackingHistory = trackingData;

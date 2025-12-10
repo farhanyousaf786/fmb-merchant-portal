@@ -390,14 +390,9 @@ const OrderDetail = ({ user, onLogout }) => {
                         <label>Invoice</label>
                         <button 
                           className="secondary-btn small-btn"
-                          onClick={() => {
-                            const invoiceUrl = order.invoice_pdf_url.startsWith('http') 
-                              ? order.invoice_pdf_url 
-                              : `${process.env.REACT_APP_API_URL}${order.invoice_pdf_url}`;
-                            window.open(invoiceUrl, '_blank', 'noreferrer');
-                          }}
+                          onClick={() => navigate(`/orders/${orderId}/invoice`)}
                         >
-                          Download Invoice
+                          📄 View Invoice
                         </button>
                       </div>
                     )}

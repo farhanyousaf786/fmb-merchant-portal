@@ -23,10 +23,21 @@ const Inventory = ({ user, onLogout }) => {
   // Helper to get full image URL
   const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
+    console.log('🖼️ Getting image URL for:', imagePath);
     // If it's already a full URL, return as is
-    if (imagePath.startsWith('http')) return imagePath;
-    // Otherwise, prepend the API URL
-    return `${process.env.REACT_APP_API_URL}${imagePath}`;
+    if (imagePath.startsWith('http')) {
+      console.log('🖼️ Already full URL, returning as is');
+      return imagePath;
+    }
+    // For uploads, remove /api from the base URL since uploads are served directly
+    let baseUrl = process.env.REACT_APP_API_URL;
+    if (imagePath.startsWith('/uploads/')) {
+      baseUrl = baseUrl.replace('/api', '');
+    }
+    const fullUrl = `${baseUrl}${imagePath}`;
+    console.log('🖼️ Full image URL:', fullUrl);
+    console.log('🖼️ Base URL used:', baseUrl);
+    return fullUrl;
   };
 
   useEffect(() => {
@@ -134,9 +145,12 @@ const Inventory = ({ user, onLogout }) => {
         });
 
         const uploadData = await uploadRes.json();
+        console.log('📤 Upload response:', uploadData);
         if (uploadRes.ok && uploadData.success && uploadData.url) {
           imageUrl = uploadData.url;
+          console.log('✅ Image uploaded successfully, URL:', imageUrl);
         } else {
+          console.error('❌ Upload failed:', uploadData);
           alert(uploadData.error || 'Failed to upload image');
           return;
         }
@@ -156,13 +170,16 @@ const Inventory = ({ user, onLogout }) => {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      console.log('💾 Save response:', data);
       if (data.success) {
         toast.success(isEdit ? 'Item updated successfully' : 'Item added successfully');
         setShowModal(false);
         setEditingItem(null);
         setSelectedImageFile(null);
         setImagePreview('');
+        console.log('🔄 Refreshing items after save...');
         await fetchItems();
+        console.log('✅ Items refreshed');
       } else {
         toast.error(data.error || 'Failed to save item');
       }
